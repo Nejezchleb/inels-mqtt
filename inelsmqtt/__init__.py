@@ -112,7 +112,7 @@ class InelsMqtt:
         self,
         client: MqttClient,  # pylint: disable=unused-argument
         userdata,  # pylint: disable=unused-argument
-        level,
+        level,  # pylint: disable=unused-argument
         buf,
     ) -> None:  # pylint: disable=unused-argument
         """Log every event fired with mqtt broker it is used
@@ -189,8 +189,11 @@ class InelsMqtt:
         self.__disconnect()
 
     def __on_publish(
-        self, client: MqttClient, userdata, mid
-    ) -> None:  # pylint: disable=unused-argument
+        self,
+        client: MqttClient,
+        userdata,  # pylint: disable=unused-argument
+        mid,  # pylint: disable=unused-argument
+    ) -> None:
         """Callback function called after publish
           has been created. Will log it.
 
@@ -260,8 +263,11 @@ class InelsMqtt:
         return self.__messages.items()
 
     def __on_discover(
-        self, client: MqttClient, userdata, msg  # pylint: disable=unused-argument
-    ) -> None:  # pylint: disable=unused-argument
+        self,
+        client: MqttClient,  # pylint: disable=unused-argument
+        userdata,
+        msg,  # pylint: disable=unused-argument
+    ) -> None:
         """Special callback function used only in discover_all function
         placed in on_message. It is the same as on_mesage callback func,
         but do different things
@@ -291,7 +297,7 @@ class InelsMqtt:
     def __on_subscribe(
         self,
         client: MqttClient,  # pylint: disable=unused-argument
-        userdata,
+        userdata,  # pylint: disable=unused-argument
         mid,  # pylint: disable=unused-argument
         granted_qos,  # pylint: disable=unused-argument
         properties=None,  # pylint: disable=unused-argument

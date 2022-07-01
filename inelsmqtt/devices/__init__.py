@@ -12,6 +12,7 @@ class Device(object):
     Args:
         object (_type_): default object it is new style of python class coding
     """
+
     def __init__(
         self,
         mqtt: InelsMqtt,

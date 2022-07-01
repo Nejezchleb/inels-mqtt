@@ -13,7 +13,7 @@ from .const import (
     TOPIC_FRAGMENTS,
     DISCOVERY_TIMEOUT_IN_SEC,
     MQTT_BROKER_CLIENT_NAME,
-    MQTT_DISCOVER_TOPIC
+    MQTT_DISCOVER_TOPIC,
 )
 
 __version__ = VERSION
@@ -27,8 +27,14 @@ __DISCOVERY_TIMEOUT__ = DISCOVERY_TIMEOUT_IN_SEC
 class InelsMqtt:
     """Wrapper for mqtt client."""
 
-    def __init__(self, host: str, port: int, user_name: str = None,
-                 password: str = None, debug: bool = False) -> None:
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        user_name: str = None,
+        password: str = None,
+        debug: bool = False,
+    ) -> None:
         """InelsMqtt instance initialization.
 
         Args:
@@ -102,10 +108,13 @@ class InelsMqtt:
         while self.__tried_to_connect is False:  # waiting for connection
             time.sleep(0.1)
 
-    def __on_log(self,
-                 client: MqttClient,  # pylint: disable=unused-argument
-                 userdata,  # pylint: disable=unused-argument
-                 level, buf) -> None:  # pylint: disable=unused-argument
+    def __on_log(
+        self,
+        client: MqttClient,  # pylint: disable=unused-argument
+        userdata,  # pylint: disable=unused-argument
+        level,  # pylint: disable=unused-argument
+        buf,
+    ) -> None:  # pylint: disable=unused-argument
         """Log every event fired with mqtt broker it is used
            only for Debuging purposes
 
@@ -123,7 +132,7 @@ class InelsMqtt:
         userdata,  # pylint: disable=unused-argument
         flag,  # pylint: disable=unused-argument
         reason_code,
-        properties=None  # pylint: disable=unused-argument
+        properties=None,  # pylint: disable=unused-argument
     ) -> None:
         """On connection callback function
 
@@ -138,13 +147,12 @@ class InelsMqtt:
             "Mqtt broker %s:%s %s",
             self.__host,
             self.__port,
-            "is connected" if reason_code == 0 else "is not connected"
+            "is connected" if reason_code == 0 else "is not connected",
         )
 
     def __on_connect_fail(
-            self,
-            client: MqttClient,  # pylint: disable=unused-argument
-            userdata) -> None:  # pylint: disable=unused-argument
+        self, client: MqttClient, userdata  # pylint: disable=unused-argument
+    ) -> None:  # pylint: disable=unused-argument
         """On connect failed callback function. Logging not
         successing broker connection.
         Args:
@@ -160,8 +168,7 @@ class InelsMqtt:
             self.__port,
         )
 
-    def publish(self, topic, payload, qos=0,
-                retain=True, properties=None) -> None:
+    def publish(self, topic, payload, qos=0, retain=True, properties=None) -> None:
         """Publish to mqtt broker. Will automatically connect
         establish all neccessary callback functions. Made
         publishing and disconnect from broker
@@ -181,8 +188,12 @@ class InelsMqtt:
         self.client.publish(topic, payload, qos, retain, properties)
         self.__disconnect()
 
-    def __on_publish(self, client: MqttClient,
-                     userdata, mid) -> None:  # pylint: disable=unused-argument
+    def __on_publish(
+        self,
+        client: MqttClient,
+        userdata,  # pylint: disable=unused-argument
+        mid,  # pylint: disable=unused-argument
+    ) -> None:
         """Callback function called after publish
           has been created. Will log it.
 
@@ -191,7 +202,7 @@ class InelsMqtt:
             userdata (object): Published data
             mid (_type_): MID
         """
-        _LOGGER.log(f'Client: {client}')
+        _LOGGER.log(f"Client: {client}")
 
     def subscribe(self, topic, qos, options, properties=None) -> None:
         """Subscribe to selected topic. Will connect, set all
@@ -252,9 +263,11 @@ class InelsMqtt:
         return self.__messages.items()
 
     def __on_discover(
-            self,
-            client: MqttClient,  # pylint: disable=unused-argument
-            userdata, msg) -> None:  # pylint: disable=unused-argument
+        self,
+        client: MqttClient,  # pylint: disable=unused-argument
+        userdata,
+        msg,  # pylint: disable=unused-argument
+    ) -> None:
         """Special callback function used only in discover_all function
         placed in on_message. It is the same as on_mesage callback func,
         but do different things
@@ -266,8 +279,7 @@ class InelsMqtt:
         self.__discover_start_time = datetime.now()
 
         # pass only those who belongs to known device types
-        device_type = msg.topic.split("/")[
-            TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]
+        device_type = msg.topic.split("/")[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]
 
         if device_type in DEVICE_TYPE_DICT:
             self.__messages[msg.topic] = msg.payload
@@ -285,9 +297,10 @@ class InelsMqtt:
     def __on_subscribe(
         self,
         client: MqttClient,  # pylint: disable=unused-argument
-        userdata, mid,  # pylint: disable=unused-argument
+        userdata,  # pylint: disable=unused-argument
+        mid,  # pylint: disable=unused-argument
         granted_qos,  # pylint: disable=unused-argument
-        properties=None  # pylint: disable=unused-argument
+        properties=None,  # pylint: disable=unused-argument
     ):
         """Callback for subscribe function. Is called after subscribe to
         the topic. Will handle disconnection from mqtt broker loop
@@ -303,7 +316,6 @@ class InelsMqtt:
         _LOGGER.info(mid)
 
     def __disconnect(self) -> None:
-        """Disconnecting from broker and stopping broker's loop
-        """
+        """Disconnecting from broker and stopping broker's loop"""
         self.client.disconnect()
         self.client.loop_stop()

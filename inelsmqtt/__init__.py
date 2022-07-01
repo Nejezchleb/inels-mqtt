@@ -12,7 +12,8 @@ from .const import (
     FRAGMENT_DEVICE_TYPE,
     TOPIC_FRAGMENTS,
     DISCOVERY_TIMEOUT_IN_SEC,
-    MQTT_BROKER_CLIENT_NAME
+    MQTT_BROKER_CLIENT_NAME,
+    MQTT_DISCOVER_TOPIC
 )
 
 __version__ = VERSION
@@ -105,7 +106,8 @@ class InelsMqtt:
                  client: MqttClient,  # pylint: disable=unused-argument
                  userdata,  # pylint: disable=unused-argument
                  level, buf) -> None:  # pylint: disable=unused-argument
-        """Log every event fired with mqtt broker it is used only for Debuging purposes
+        """Log every event fired with mqtt broker it is used
+           only for Debuging purposes
 
         Args:
             client (MqttClient): _description_
@@ -123,7 +125,12 @@ class InelsMqtt:
         reason_code,
         properties=None  # pylint: disable=unused-argument
     ) -> None:
-        """On connect callback function."""
+        """On connection callback function
+
+        Args:
+            client (MqttClient): instance of mqtt client
+            properties (_type_, optional): Props from mqtt sets. Defaults None
+        """
         self.__tried_to_connect = True
         self.__is_available = reason_code == 0
 
@@ -131,14 +138,18 @@ class InelsMqtt:
             "Mqtt broker %s:%s %s",
             self.__host,
             self.__port,
-            "is connected" if reason_code == 0 else "is not connected",
+            "is connected" if reason_code == 0 else "is not connected"
         )
 
     def __on_connect_fail(
             self,
             client: MqttClient,  # pylint: disable=unused-argument
             userdata) -> None:  # pylint: disable=unused-argument
-        """Fail with connecting."""
+        """On connect failed callback function. Logging not
+        successing broker connection.
+        Args:
+            client (MqttClient): Instance of mqtt client
+        """
 
         self.__tried_to_connect = True
         self.__disconnect()
@@ -151,7 +162,20 @@ class InelsMqtt:
 
     def publish(self, topic, payload, qos=0,
                 retain=True, properties=None) -> None:
-        """Publish to the broker."""
+        """Publish to mqtt broker. Will automatically connect
+        establish all neccessary callback functions. Made
+        publishing and disconnect from broker
+
+        Args:
+            topic (str): topic string where to publish
+            payload (str): data content
+            qos (int, optional): quality of service
+              https://mosquitto.org/man/mqtt-7.html. Defaults to 0.
+            retain (bool, optional): Broke will keep message after sending it
+              to all subscribers. Defaults to True.
+            properties (_type_, optional): Props from mqtt sets.
+              Defaults to None.
+        """
         self.__connect()
         self.client.on_publish = self.__on_publish
         self.client.publish(topic, payload, qos, retain, properties)
@@ -159,23 +183,60 @@ class InelsMqtt:
 
     def __on_publish(self, client: MqttClient,
                      userdata, mid) -> None:  # pylint: disable=unused-argument
-        """On publish callback function."""
+        """Callback function called after publish
+          has been created. Will log it.
+
+        Args:
+            client (MqttClient): Instance of mqtt broker
+            userdata (object): Published data
+            mid (_type_): MID
+        """
         _LOGGER.log(f'Client: {client}')
 
     def subscribe(self, topic, qos, options, properties=None) -> None:
-        """Subscribe to the broker."""
+        """Subscribe to selected topic. Will connect, set all
+        callback function and subscribe to the topic. After that
+        will automatically disconnect from broker.
+
+        Args:
+            topic (str): Topic string representation
+            qos (_type_): Quality of service.
+            options (_type_): Options is not used, but callback must
+              have implemented
+            properties (_type_, optional): Props from mqtt set.
+              Defaults to None.
+        """
         self.__connect()
         self.client.on_message = self.__on_message
         self.client.on_subscribe = self.__on_subscribe
         self.client.subscribe(topic, qos, options, properties)
         self.__disconnect()
 
-    def discover_all(self, topic: str) -> dict[str, str]:
-        """Discover all devivce."""
+    def discover_all(self) -> dict[str, str]:
+        """Subscribe to selected topic. This method is primary used for
+        subscribing with wild-card (#,+).
+        When wild-card is used, then all topic matching this will
+        be subscribed and collected therir payloads and topic representation.
+
+        e.g.: prefix/status/groundfloor/# - will match all groundfloor topics
+                    prefix/status/groundfloor/kitchen/temp - yes
+                    prefix/status/groundfloor/linvingroom/temp - yes
+                    prefix/status/firstfloor/bathroom/temp - no
+                    prefix/status/groundfloor/kitchen/fridge/temp - yes
+
+              prefix/status/groundfoor/+/temp - will get all groundfloor temp
+                    prefix/status/groundfloor/kitchen/temp - yes
+                    prefix/status/groundfloor/kitchen/lamp - no
+                    prefix/status/groundfloor/livingroom/temp - yes
+                    prefix/status/groundfloor/kitchen/fridge/temp - no
+
+        Returns:
+            dict[str, str]: Dictionary of all topics with their payloads
+        """
         self.__connect()
         self.client.on_message = self.__on_discover
         self.client.on_subscribe = self.__on_subscribe
-        self.client.subscribe(topic, 0, None, None)
+        self.client.subscribe(MQTT_DISCOVER_TOPIC, 0, None, None)
 
         self.__discover_start_time = datetime.now()
 
@@ -194,7 +255,14 @@ class InelsMqtt:
             self,
             client: MqttClient,  # pylint: disable=unused-argument
             userdata, msg) -> None:  # pylint: disable=unused-argument
-        """Callback function with returned payload."""
+        """Special callback function used only in discover_all function
+        placed in on_message. It is the same as on_mesage callback func,
+        but do different things
+
+        Args:
+            client (MqttClient): Mqtt broker instance
+            msg (object): Topic with payload from broker
+        """
         self.__discover_start_time = datetime.now()
 
         # pass only those who belongs to known device types
@@ -205,14 +273,37 @@ class InelsMqtt:
             self.__messages[msg.topic] = msg.payload
 
     def __on_message(self, client: MqttClient, userdata, msg) -> None:
-        """Callback function with returned payload."""
+        """Callback function which is used for subscription
+
+        Args:
+            client (MqttClient): Instance of mqtt broker
+            userdata (_type_): Date about user
+            msg (object): Topic with payload from broker
+        """
+        # implement message processing algorythm
 
     def __on_subscribe(
-        self, client: MqttClient, userdata, mid, granted_qos, properties=None
+        self,
+        client: MqttClient,  # pylint: disable=unused-argument
+        userdata, mid,  # pylint: disable=unused-argument
+        granted_qos,  # pylint: disable=unused-argument
+        properties=None  # pylint: disable=unused-argument
     ):
-        """Callback function for subscribtion."""
+        """Callback for subscribe function. Is called after subscribe to
+        the topic. Will handle disconnection from mqtt broker loop
+
+        Args:
+            client (MqttClient): Instance of mqtt broker
+            userdata (_type_): Data about user
+            mid (_type_): MID
+            granted_qos (_type_): Quality of service is granted
+            properties (_type_, optional): Props from broker set.
+                Defaults to None.
+        """
+        _LOGGER.info(mid)
 
     def __disconnect(self) -> None:
-        """Cloase loop and disconnect from the broker."""
+        """Disconnecting from broker and stopping broker's loop
+        """
         self.client.disconnect()
         self.client.loop_stop()

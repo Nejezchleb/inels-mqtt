@@ -1,6 +1,6 @@
 """Setup script for inels-mqtt package."""
 from setuptools import setup, find_packages
-from inels-mqtt.const import VERSION, NAME
+from inelsmqtt.const import VERSION, NAME
 
 
 setup(name=NAME,

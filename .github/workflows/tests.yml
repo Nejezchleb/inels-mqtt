@@ -1,16 +1,8 @@
-name: Linting and testing code
+name: Tests
 
-on:
-  - push
-  - pull_request
+on: [push, pull_request]
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-      - users: psf/black@stable
   test:
     runs-on: ${{ matrix.os }}
     strategy:

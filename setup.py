@@ -1,11 +1,9 @@
 """Setup script for inels-mqtt package."""
 from setuptools import setup, find_packages
-from inelsmqtt.const import VERSION, NAME
-
 
 setup(
-    name=NAME,
-    version=VERSION,
+    name="inels-mqtt",
+    version="0.0.1",
     url="https://github.com/Nejezchleb/inels-mqtt",
     license="MIT",
     author="Elko EP s.r.o.",

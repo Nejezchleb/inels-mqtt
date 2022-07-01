@@ -3,7 +3,7 @@
     /** Enable format on save */
     "editor.formatOnSave": true,
     "python.testing.pytestEnabled": false,
-    "python.formatting.provider": "autopep8",
+    "python.formatting.provider": "black",
     "python.formatting.blackArgs": [
         "\"--line-length\", \"80\""
     ],
@@ -14,5 +14,10 @@
         "-p",
         "*_test.py"
     ],
-    "python.testing.unittestEnabled": true
+    "python.testing.unittestEnabled": true,
+    "editor.formatOnType": false,
+    "python.formatting.blackPath": "/usr/local/bin/black",
+    "python.analysis.extraPaths": [
+        "./inelsmqtt"
+    ]
 }

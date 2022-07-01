@@ -39,6 +39,10 @@ RUN apk add --update bash
 # install flake8 and tox
 RUN pip install flake8
 RUN pip install tox
+RUN pip install black
+RUN pip install pylint
+RUN pip install pydocstyle
+RUN pip install mypy
 
 # [Optional] Uncomment this line to install global node packages.
 # RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1

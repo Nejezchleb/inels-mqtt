@@ -1,4 +1,5 @@
 """Setup script for inels-mqtt package."""
+from encodings import utf_8
 from setuptools import setup, find_packages
 from inelsmqtt.const import VERSION, NAME
 
@@ -14,7 +15,7 @@ setup(name=NAME,
       long_description_content_type='text/markdown',
       charset='UTF-8',
       variant='GFM',
-      long_description=open('README.md').read(),
+      long_description=open('README.md', encoding=utf_8).read(),
       zip_safe=False,
       classifiers=[
           "License :: OSI Approved :: MIT License",

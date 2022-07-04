@@ -35,6 +35,7 @@ RUN python -m venv /venv
 
 RUN apk add --update git
 RUN apk add --update bash
+RUN apk add --update bash-completion
 
 # install flake8 and tox
 RUN pip install flake8

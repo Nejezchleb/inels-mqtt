@@ -1,11 +1,15 @@
 name: Publish Python 🐍 distributions 📦 to  TestPyPI
 
-on: [push]
+on:
+  release:
+    types: [published]
 
 jobs:
   build-n-publish:
     name: Build and publish Python 🐍 distributions 📦 to TestPyPI
     runs-on: ubuntu-latest
+
+
 
     steps:
       - uses: actions/checkout@master

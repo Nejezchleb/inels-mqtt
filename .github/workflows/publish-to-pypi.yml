@@ -1,10 +1,12 @@
-name: Publish Python 🐍 distributions 📦 to  TestPyPI
+name: Publish inels-mqtt 🐍 distributions 📦 to PyPI
 
-on: [pull_request]
+on:
+  release:
+    types: [published]
 
 jobs:
   build-n-publish:
-    name: Build and publish Python 🐍 distributions 📦 to TestPyPI
+    name: Build and publish inels-mqtt 🐍 distributions 📦 to PyPI
     runs-on: ubuntu-latest
 
     steps:
@@ -28,8 +30,8 @@ jobs:
           --wheel
           --outdir dist/
 
-      - name: Publish distribution 📦 to Test PyPI
+      - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@master
         with:
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          repository_url: https://test.pypi.org/legacy/
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          repository_url: https://pypi.org/legacy/

@@ -265,8 +265,8 @@ class InelsMqtt:
     def __on_discover(
         self,
         client: MqttClient,  # pylint: disable=unused-argument
-        userdata,
-        msg,  # pylint: disable=unused-argument
+        userdata,  # pylint: disable=unused-argument
+        msg,
     ) -> None:
         """Special callback function used only in discover_all function
         placed in on_message. It is the same as on_mesage callback func,

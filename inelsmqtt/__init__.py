@@ -160,6 +160,7 @@ class InelsMqtt:
         """
 
         self.__tried_to_connect = True
+        self.__is_available = False
         self.__disconnect()
         _LOGGER.info(
             "Mqtt broker %s %s:%s failed on connection",

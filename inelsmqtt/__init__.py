@@ -54,6 +54,7 @@ class InelsMqtt:
         self.__is_available = False
         self.__tried_to_connect = False
         self.__discover_start_time = None
+        self.__published = False
 
         self.client = MqttClient(MQTT_BROKER_CLIENT_NAME, protocol=MQTTv5)
 
@@ -175,7 +176,7 @@ class InelsMqtt:
             self.__port,
         )
 
-    def publish(self, topic, payload, qos=0, retain=True, properties=None) -> None:
+    def publish(self, topic, payload, qos=0, retain=True, properties=None) -> bool:
         """Publish to mqtt broker. Will automatically connect
         establish all neccessary callback functions. Made
         publishing and disconnect from broker
@@ -192,8 +193,24 @@ class InelsMqtt:
         """
         self.__connect()
         self.client.on_publish = self.__on_publish
+
+        self.__published = False
         self.client.publish(topic, payload, qos, retain, properties)
+
+        start_time = datetime.now()
+
+        while True:
+            # there should be timeout to discover all topics
+            time_delta = datetime.now() - start_time
+            if time_delta.total_seconds() > __DISCOVERY_TIMEOUT__:
+                self.__published = False
+                break
+
+            time.sleep(0.1)
+
         self.__disconnect()
+
+        return self.__published
 
     def __on_publish(
         self,
@@ -209,6 +226,7 @@ class InelsMqtt:
             userdata (object): Published data
             mid (_type_): MID
         """
+        self.__published = True
         _LOGGER.log(f"Client: {client}")
 
     def subscribe(self, topic, qos=0, options=None, properties=None) -> str:

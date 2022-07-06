@@ -161,3 +161,19 @@ class InelsMqttTest(TestCase):
         payload = self.mqtt.subscribe(topic=topic)
 
         self.assertEqual(msg.payload, payload)
+
+    def test_message_property(self) -> None:
+        """Test if message property returns right data."""
+        dictionary = {
+            "inels/555555/status/01/3423452435": "first",
+            "inels/555555/status/01/3424524222": "second",
+            "inels/555555/status/02/452435234": "third",
+            "inels/222222/status/01/85034495": "fourth",
+        }
+
+        # fill up __message prop
+        self.mqtt._InelsMqtt__messages = dictionary  # pylint: disable=protected-access
+
+        self.assertIsNotNone(self.mqtt.messages)
+        self.assertEqual(len(self.mqtt.messages), 4)
+        self.assertDictEqual(self.mqtt.messages, dictionary)

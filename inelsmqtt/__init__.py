@@ -22,6 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 
 # when no topic were detected, then stop discovery
 __DISCOVERY_TIMEOUT__ = DISCOVERY_TIMEOUT_IN_SEC
+__CONNECTION_TIMEOUT__ = 15  # it has seconds for connecting to broker
 
 
 class InelsMqtt:
@@ -95,6 +96,7 @@ class InelsMqtt:
         """Create connection and register callback function to neccessary
         purposes.
         """
+        start_time = datetime.now()
         self.__is_available = self.__tried_to_connect = False
 
         if self.__debug is True:
@@ -106,7 +108,12 @@ class InelsMqtt:
         self.client.loop_start()
 
         while self.__tried_to_connect is False:  # waiting for connection
-            time.sleep(0.1)
+            time.sleep(0.5)
+
+            time_delta = datetime.now() - start_time
+            if time_delta.total_seconds() > __CONNECTION_TIMEOUT__:
+                # there is some kind of connection issue. Broker is not responding
+                break
 
     def __on_log(
         self,
@@ -158,8 +165,8 @@ class InelsMqtt:
         Args:
             client (MqttClient): Instance of mqtt client
         """
-
         self.__tried_to_connect = True
+        self.__is_available = False
         self.__disconnect()
         _LOGGER.info(
             "Mqtt broker %s %s:%s failed on connection",
@@ -204,7 +211,7 @@ class InelsMqtt:
         """
         _LOGGER.log(f"Client: {client}")
 
-    def subscribe(self, topic, qos, options, properties=None) -> None:
+    def subscribe(self, topic, qos=0, options=None, properties=None) -> str:
         """Subscribe to selected topic. Will connect, set all
         callback function and subscribe to the topic. After that
         will automatically disconnect from broker.
@@ -221,7 +228,19 @@ class InelsMqtt:
         self.client.on_message = self.__on_message
         self.client.on_subscribe = self.__on_subscribe
         self.client.subscribe(topic, qos, options, properties)
+
+        start_time = datetime.now()
+
+        while True:
+            # there should be timeout to discover all topics
+            time_delta = datetime.now() - start_time
+            if time_delta.total_seconds() > __DISCOVERY_TIMEOUT__:
+                break
+
+            time.sleep(0.1)
+
         self.__disconnect()
+        return self.__messages[topic]
 
     def discover_all(self) -> dict[str, str]:
         """Subscribe to selected topic. This method is primary used for
@@ -260,13 +279,13 @@ class InelsMqtt:
             time.sleep(0.1)
 
         self.__disconnect()
-        return self.__messages.items()
+        return self.__messages
 
     def __on_discover(
         self,
         client: MqttClient,  # pylint: disable=unused-argument
-        userdata,
-        msg,  # pylint: disable=unused-argument
+        userdata,  # pylint: disable=unused-argument
+        msg,
     ) -> None:
         """Special callback function used only in discover_all function
         placed in on_message. It is the same as on_mesage callback func,
@@ -276,6 +295,8 @@ class InelsMqtt:
             client (MqttClient): Mqtt broker instance
             msg (object): Topic with payload from broker
         """
+        # set discovery_start_time to now evry message was returned
+        # will be doing till messages will rising
         self.__discover_start_time = datetime.now()
 
         # pass only those who belongs to known device types
@@ -284,7 +305,12 @@ class InelsMqtt:
         if device_type in DEVICE_TYPE_DICT:
             self.__messages[msg.topic] = msg.payload
 
-    def __on_message(self, client: MqttClient, userdata, msg) -> None:
+    def __on_message(
+        self,
+        client: MqttClient,  # pylint: disable=unused-argument
+        userdata,  # pylint: disable=unused-argument
+        msg,
+    ) -> None:
         """Callback function which is used for subscription
 
         Args:
@@ -292,7 +318,10 @@ class InelsMqtt:
             userdata (_type_): Date about user
             msg (object): Topic with payload from broker
         """
-        # implement message processing algorythm
+        device_type = msg.topic.split("/")[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]
+
+        if device_type in DEVICE_TYPE_DICT:
+            self.__messages[msg.topic] = msg.payload
 
     def __on_subscribe(
         self,

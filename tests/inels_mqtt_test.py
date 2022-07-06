@@ -7,6 +7,7 @@ from unittest import TestCase
 from inelsmqtt import InelsMqtt
 
 from tests.const import (
+    TEST_INELS_MQTT_CLASS_NAMESPACE,
     TEST_INELS_MQTT_NAMESPACE,
     TEST_HOST,
     TEST_PORT,
@@ -112,3 +113,51 @@ class InelsMqttTest(TestCase):
             self.mqtt, Mock()
         )
         self.assertEqual(self.mqtt.is_available, False)
+
+    @patch(
+        f"{TEST_INELS_MQTT_CLASS_NAMESPACE}._InelsMqtt__connect", return_value=Mock()
+    )
+    @patch(f"{TEST_INELS_MQTT_NAMESPACE}.MqttClient.subscribe", return_value=Mock())
+    def test_discovery_all_with_tree_messages(
+        self, mock_connect, mock_broker_subscribe
+    ) -> None:
+        """Test discovery funct to find and register all interested topics."""
+
+        # initialize three topics with status
+        items = {
+            "inels/45464654/status/01/457544": "rrqeraad",
+            "inels/45464654/status/01/74544": "eeeqqq",
+            "inels/45464654/status/01/8887": "adfadfefe",
+            "some/kind/of/different/topic/in/broker": "adfadf",  # should be filtered out
+        }
+
+        for item in items.items():
+            msg = type("msg", (object,), {"topic": item[0], "payload": item[1]})
+            self.mqtt._InelsMqtt__on_discover(  # pylint: disable=protected-access
+                self.mqtt, Mock(), msg
+            )
+
+        devices = self.mqtt.discover_all()
+        self.assertEqual(len(devices), 3)
+
+    @patch(
+        f"{TEST_INELS_MQTT_CLASS_NAMESPACE}._InelsMqtt__connect", return_value=Mock()
+    )
+    @patch(f"{TEST_INELS_MQTT_NAMESPACE}.MqttClient.subscribe", return_value=Mock())
+    def test_subscribe_message(self, mock_connect, mock_broker_subscribe) -> None:
+        """Testing subscribtion of the message from the broker."""
+
+        topic = "inels/45464654/status/01/457544"
+        msg = type(
+            "msg",
+            (object,),
+            {"topic": topic, "payload": "adfadfadf"},
+        )
+
+        self.mqtt._InelsMqtt__on_message(  # pylint: disable=protected-access
+            self.mqtt, Mock(), msg
+        )
+
+        payload = self.mqtt.subscribe(topic=topic)
+
+        self.assertEqual(msg.payload, payload)

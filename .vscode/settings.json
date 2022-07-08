@@ -19,5 +19,8 @@
     "python.formatting.blackPath": "/usr/local/bin/black",
     "python.analysis.extraPaths": [
         "./inelsmqtt"
+    ],
+    "githubPullRequests.ignoredPullRequestBranches": [
+        "master"
     ]
 }

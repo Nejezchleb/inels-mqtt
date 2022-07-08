@@ -366,3 +366,7 @@ class InelsMqtt:
         """Disconnecting from broker and stopping broker's loop"""
         self.client.disconnect()
         self.client.loop_stop()
+
+    def disconnect(self) -> None:
+        """Disconnect mqtt client."""
+        return self.__disconnect()

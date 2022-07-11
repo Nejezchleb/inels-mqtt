@@ -1,0 +1,75 @@
+"""Unit test for Discovery class
+    handling device discovering
+"""
+
+from unittest.mock import patch, Mock
+from unittest import TestCase
+
+from inelsmqtt.discovery import InelsDiscovery
+from inelsmqtt import InelsMqtt
+
+from tests.const import (
+    TEST_DEBUG_TRUE,
+    TEST_HOST,
+    TEST_INELS_MQTT_CLASS_NAMESPACE,
+    TEST_INELS_MQTT_NAMESPACE,
+    TEST_PASSWORD,
+    TEST_PORT,
+    TEST_TOPIC_STATE,
+    TEST_USER_NAME,
+)
+
+
+class DiscoveryTest(TestCase):
+    """Discovery class tests
+
+    Args:
+        TestCase (_type_): Base class of unit testing
+    """
+
+    def setUp(self) -> None:
+        """Setup all patches and instances for Discovery testing"""
+        # mocking mqtt broker client
+        self.patches = [
+            patch(f"{TEST_INELS_MQTT_NAMESPACE}.MqttClient", return_value=Mock()),
+            patch(
+                f"{TEST_INELS_MQTT_NAMESPACE}.MqttClient.username_pw_set",
+                return_value=Mock(),
+            ),
+            patch(f"{TEST_INELS_MQTT_NAMESPACE}._LOGGER", return_value=Mock()),
+        ]
+
+        for item in self.patches:
+            item.start()
+
+        mqtt = InelsMqtt(
+            TEST_HOST, TEST_PORT, TEST_USER_NAME, TEST_PASSWORD, TEST_DEBUG_TRUE
+        )
+
+        self.i_dis = InelsDiscovery(mqtt)
+
+    def tearDown(self) -> None:
+        """Destroy all instances and stop patches"""
+        patch.stopall()
+        self.patches = None
+        self.i_dis = None
+
+    def test_init_discovery(self) -> None:
+        """Initialize test instance of the InelsDiscovery"""
+        self.assertIsInstance(self.i_dis, InelsDiscovery)
+        self.assertIsInstance(self.i_dis.devices, list)
+        self.assertEqual(len(self.i_dis.devices), 0)
+
+    @patch(
+        f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.discovery_all",
+        return_value={TEST_TOPIC_STATE: "data"},
+    )
+    def test_discovery(self, mock_discovery_all) -> None:
+        """Test get list of devices"""
+
+        devices = self.i_dis.discovery()
+
+        self.assertGreater(len(devices), 0)
+
+        mock_discovery_all.assert_called()
+        mock_discovery_all.assert_called_once()

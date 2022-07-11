@@ -120,6 +120,24 @@ class Device(object):
         self.__payload = payload
         return self.__mqtt.publish(self.__set_topic, self.__payload)
 
+    @property
+    def set_topic(self) -> str:
+        """Set topic
+
+        Returns:
+            str: string of the set topic
+        """
+        return self.__set_topic
+
+    @property
+    def state_topic(self) -> str:
+        """State topic
+
+        Returns:
+            str: string of the status topic
+        """
+        return self.__state_topic
+
     def info(self) -> str:
         """Device info in json format string
 

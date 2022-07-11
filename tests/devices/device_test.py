@@ -8,12 +8,13 @@ from inelsmqtt.devices import Device
 from inelsmqtt.const import (
     DEVICE_TYPE_DICT,
     FRAGMENT_DEVICE_TYPE,
+    FRAGMENT_DOMAIN,
     FRAGMENT_SERIAL_NUMBER,
     FRAGMENT_UNIQUE_ID,
     TOPIC_FRAGMENTS,
 )
 
-from tests.const import TEST_TOPIC_STATE, TEST_TOPIC_SET
+from tests.const import TEST_TOPIC_STATE
 
 
 class DeviceTest(TestCase):
@@ -35,9 +36,9 @@ class DeviceTest(TestCase):
         data = '{"power": "on"}'
 
         # device without title
-        dev_no_title = Device(Mock(), TEST_TOPIC_STATE, TEST_TOPIC_SET, data)
+        dev_no_title = Device(Mock(), TEST_TOPIC_STATE, data)
         # device with title
-        dev_with_title = Device(Mock(), TEST_TOPIC_STATE, TEST_TOPIC_SET, data, title)
+        dev_with_title = Device(Mock(), TEST_TOPIC_STATE, data, title)
 
         self.assertIsNotNone(dev_no_title)
         self.assertIsNotNone(dev_with_title)
@@ -50,6 +51,13 @@ class DeviceTest(TestCase):
 
         fragments = TEST_TOPIC_STATE.split("/")
 
+        set_topic = f"""
+            {fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/
+            {fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/
+            set/
+            {fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/
+            {fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"""
+
         self.assertEqual(
             dev_no_title.unique_id, fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]
         )
@@ -60,3 +68,6 @@ class DeviceTest(TestCase):
         self.assertEqual(
             dev_no_title.parent_id, fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]
         )
+
+        self.assertEqual(dev_no_title.set_topic, set_topic)
+        self.assertEqual(dev_with_title.set_topic, set_topic)

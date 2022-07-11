@@ -260,7 +260,7 @@ class InelsMqtt:
         self.__disconnect()
         return self.__messages[topic]
 
-    def discover_all(self) -> dict[str, str]:
+    def discovery_all(self) -> dict[str, str]:
         """Subscribe to selected topic. This method is primary used for
         subscribing with wild-card (#,+).
         When wild-card is used, then all topic matching this will

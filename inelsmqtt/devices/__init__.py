@@ -5,6 +5,7 @@ import json
 from inelsmqtt import InelsMqtt
 from inelsmqtt.const import (
     DEVICE_TYPE_DICT,
+    FRAGMENT_DOMAIN,
     TOPIC_FRAGMENTS,
     FRAGMENT_DEVICE_TYPE,
     FRAGMENT_SERIAL_NUMBER,
@@ -25,7 +26,6 @@ class Device(object):
         self,
         mqtt: InelsMqtt,
         state_topic: str,
-        set_topic: str,
         payload: str,
         title: str = None,
     ) -> None:
@@ -48,7 +48,12 @@ class Device(object):
         self.__unique_id = fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]
         self.__parent_id = fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]
         self.__state_topic = state_topic
-        self.__set_topic = set_topic
+        self.__set_topic = f"""
+            {fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/
+            {fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/
+            set/
+            {fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/
+            {fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"""
         self.__payload = payload
         self.__title = title if title is not None else self.__unique_id
 

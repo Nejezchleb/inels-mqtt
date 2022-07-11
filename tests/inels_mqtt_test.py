@@ -137,7 +137,7 @@ class InelsMqttTest(TestCase):
                 self.mqtt, Mock(), msg
             )
 
-        devices = self.mqtt.discover_all()
+        devices = self.mqtt.discovery_all()
         self.assertEqual(len(devices), 3)
 
     @patch(

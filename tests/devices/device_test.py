@@ -4,7 +4,7 @@
 from unittest.mock import Mock
 from unittest import TestCase
 
-from inelsmqtt.devices import Device
+from inelsmqtt.devices import Device, DeviceInfo
 from inelsmqtt.const import (
     DEVICE_TYPE_DICT,
     FRAGMENT_DEVICE_TYPE,
@@ -26,9 +26,11 @@ class DeviceTest(TestCase):
 
     def setUp(self) -> None:
         """Setup all patches and instances for device testing"""
+        self.device = Device(Mock(), TEST_TOPIC_STATE, "Device")
 
     def tearDown(self) -> None:
         """Destroy all instances and stop patches"""
+        self.device = None
 
     def test_initialize_device(self) -> None:
         """Test initialization of device object"""
@@ -71,3 +73,15 @@ class DeviceTest(TestCase):
 
         self.assertEqual(dev_no_title.set_topic, set_topic)
         self.assertEqual(dev_with_title.set_topic, set_topic)
+
+    def test_info_serialized(self) -> None:
+        """Test of the serialized info."""
+        self.assertIsInstance(self.device.info_serialized(), str)
+
+    def test_info(self) -> None:
+        """Test of the info."""
+        info = self.device.info()
+        fragments = TEST_TOPIC_STATE.split("/")
+
+        self.assertIsInstance(info, DeviceInfo)
+        self.assertEqual(info.manufacturer, fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]])

@@ -56,6 +56,7 @@ class Device(object):
             {fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"""
         self.__payload = payload
         self.__title = title if title is not None else self.__unique_id
+        self.__domain = fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]
 
     @property
     def unique_id(self) -> str:
@@ -138,7 +139,21 @@ class Device(object):
         """
         return self.__state_topic
 
-    def info(self) -> str:
+    @property
+    def domain(self) -> str:
+        """Domain name of the topic
+           it should represent the manufacturer
+
+        Returns:
+            str: Name of the domain
+        """
+        return self.__domain
+
+    def info(self):
+        """Device info."""
+        return DeviceInfo(self)
+
+    def info_serialized(self) -> str:
         """Device info in json format string
 
         Returns:
@@ -155,3 +170,35 @@ class Device(object):
         _LOGGER.info("Device: %s", json_serialized)
 
         return json_serialized
+
+
+class DeviceInfo(object):
+    """Device info class."""
+
+    def __init__(self, device: Device) -> None:
+        """Create object of the class
+
+        Args:
+            device (Device): device object
+        """
+        self.__device = device
+
+    @property
+    def manufacturer(self) -> str:
+        """Manufacturer property."""
+        return self.__device.domain
+
+    @property
+    def model_number(self) -> str:
+        """Modle of the device."""
+        return "TODO: model"
+
+    @property
+    def sw_version(self) -> str:
+        """Sw version of the device."""
+        return "TODO: Sw version"
+
+    @property
+    def serial_number(self) -> str:
+        """Serial number of the device."""
+        return self.__device.unique_id

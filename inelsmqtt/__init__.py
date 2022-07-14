@@ -1,18 +1,28 @@
 """Library specified for inels-mqtt."""
 import logging
 import time
+import uuid
+import queue
 
 from datetime import datetime
+from typing import Any
 
-from paho.mqtt.client import Client as MqttClient, MQTTv5
+import paho.mqtt.client as mqtt
 
 from .const import (
+    MQTT_CLIENT_ID,
+    MQTT_HOST,
+    MQTT_PASSWORD,
+    MQTT_PORT,
+    MQTT_TIMEOUT,
+    MQTT_USERNAME,
+    PROTO_5,
+    MQTT_PROTOCOL,
     VERSION,
     DEVICE_TYPE_DICT,
     FRAGMENT_DEVICE_TYPE,
     TOPIC_FRAGMENTS,
     DISCOVERY_TIMEOUT_IN_SEC,
-    MQTT_BROKER_CLIENT_NAME,
     MQTT_DISCOVER_TOPIC,
 )
 
@@ -30,36 +40,49 @@ class InelsMqtt:
 
     def __init__(
         self,
-        host: str,
-        port: int,
-        user_name: str = None,
-        password: str = None,
-        debug: bool = False,
+        config: dict[str, Any],
     ) -> None:
         """InelsMqtt instance initialization.
 
         Args:
+            config dict[str, Any]: config for mqtt connection
             host (str): mqtt broker host. Can be IP address
             port (int): broker port on which listening
-            user_name (str): user name to sign in. It is optional
-            password (str): password to auth into the broker. It is optional
             debug (bool): flag for debuging mqtt comunication. Default False
         """
-        self.__host = host
-        self.__port = port
-        self.__user_name = user_name
-        self.__password = password
-        self.__debug = debug
+        if config[MQTT_PROTOCOL] == PROTO_5:
+            proto = mqtt.MQTTv5
+        else:
+            proto = mqtt.MQTTv311
+
+        if (client_id := config.get(MQTT_CLIENT_ID)) is None:
+            client_id = mqtt.base62(uuid.uuid4().int, padding=22)
+
+        self.__client = mqtt.Client(client_id, protocol=proto)
+        self.__client.enable_logger()
+
+        u_name = config.get(MQTT_USERNAME)
+        u_pwd = config.get(MQTT_PASSWORD)
+
+        if u_name is not None:
+            self.__client.username_pw_set(u_name, u_pwd)
+
+        self.__host = config[MQTT_HOST]
+        self.__port = config[MQTT_PORT]
+
+        _t = config.get(MQTT_TIMEOUT)
+        self.__timeout = _t if _t is not None else DISCOVERY_TIMEOUT_IN_SEC
+        self.__con_que = queue.Queue(maxsize=1)
+
         self.__messages = dict[str, str]()
         self.__is_available = False
-        self.__tried_to_connect = False
         self.__discover_start_time = None
         self.__published = False
 
-        self.client = MqttClient(MQTT_BROKER_CLIENT_NAME, protocol=MQTTv5)
-
-        if self.__user_name is not None and self.__password is not None:
-            self.client.username_pw_set(self.__user_name, self.__password)
+    @property
+    def client(self) -> mqtt.Client:
+        """Paho mqtt client."""
+        return self.__client
 
     @property
     def messages(self) -> dict[str, str]:
@@ -97,46 +120,13 @@ class InelsMqtt:
         """Create connection and register callback function to neccessary
         purposes.
         """
-        start_time = datetime.now()
-        self.__is_available = self.__tried_to_connect = False
-
-        if self.__debug is True:
-            self.client.on_log = self.__on_log
-
-        self.client.on_connect = self.__on_connect
-        self.client.on_connect_fail = self.__on_connect_fail
-        self.client.connect(self.__host, self.__port, properties=None)
-        self.client.loop_start()
-
-        while self.__tried_to_connect is False:  # waiting for connection
-            time.sleep(0.5)
-
-            time_delta = datetime.now() - start_time
-            if time_delta.total_seconds() > __CONNECTION_TIMEOUT__:
-                # there is some kind of connection issue. Broker is not responding
-                break
-
-    def __on_log(
-        self,
-        client: MqttClient,  # pylint: disable=unused-argument
-        userdata,  # pylint: disable=unused-argument
-        level,  # pylint: disable=unused-argument
-        buf,
-    ) -> None:  # pylint: disable=unused-argument
-        """Log every event fired with mqtt broker it is used
-           only for Debuging purposes
-
-        Args:
-            client (MqttClient): _description_
-            userdata (_type_): _description_
-            level (_type_): _description_
-            buf (_type_): _description_
-        """
-        _LOGGER.info(buf, __name__)
+        self.__client.on_connect = self.__on_connect
+        self.__client.connect_async(self.__host, self.__port)
+        self.__client.loop_start()
 
     def __on_connect(
         self,
-        client: MqttClient,  # pylint: disable=unused-argument
+        client: mqtt.Client,  # pylint: disable=unused-argument
         userdata,  # pylint: disable=unused-argument
         flag,  # pylint: disable=unused-argument
         reason_code,
@@ -148,32 +138,13 @@ class InelsMqtt:
             client (MqttClient): instance of mqtt client
             properties (_type_, optional): Props from mqtt sets. Defaults None
         """
-        self.__tried_to_connect = True
-        self.__is_available = reason_code == 0
-
+        self.__con_que.put(reason_code == mqtt.CONNACK_ACCEPTED)
+        self.__is_available = self.__con_que.get(timeout=self.__timeout)
         _LOGGER.info(
             "Mqtt broker %s:%s %s",
             self.__host,
             self.__port,
             "is connected" if reason_code == 0 else "is not connected",
-        )
-
-    def __on_connect_fail(
-        self, client: MqttClient, userdata  # pylint: disable=unused-argument
-    ) -> None:  # pylint: disable=unused-argument
-        """On connect failed callback function. Logging not
-        successing broker connection.
-        Args:
-            client (MqttClient): Instance of mqtt client
-        """
-        self.__tried_to_connect = True
-        self.__is_available = False
-        self.__disconnect()
-        _LOGGER.info(
-            "Mqtt broker %s %s:%s failed on connection",
-            MQTT_BROKER_CLIENT_NAME,
-            self.__host,
-            self.__port,
         )
 
     def publish(self, topic, payload, qos=0, retain=True, properties=None) -> bool:
@@ -214,7 +185,7 @@ class InelsMqtt:
 
     def __on_publish(
         self,
-        client: MqttClient,
+        client: mqtt.Client,
         userdata,  # pylint: disable=unused-argument
         mid,  # pylint: disable=unused-argument
     ) -> None:
@@ -301,7 +272,7 @@ class InelsMqtt:
 
     def __on_discover(
         self,
-        client: MqttClient,  # pylint: disable=unused-argument
+        client: mqtt.Client,  # pylint: disable=unused-argument
         userdata,  # pylint: disable=unused-argument
         msg,
     ) -> None:
@@ -325,7 +296,7 @@ class InelsMqtt:
 
     def __on_message(
         self,
-        client: MqttClient,  # pylint: disable=unused-argument
+        client: mqtt.Client,  # pylint: disable=unused-argument
         userdata,  # pylint: disable=unused-argument
         msg,
     ) -> None:
@@ -343,7 +314,7 @@ class InelsMqtt:
 
     def __on_subscribe(
         self,
-        client: MqttClient,  # pylint: disable=unused-argument
+        client: mqtt.Client,  # pylint: disable=unused-argument
         userdata,  # pylint: disable=unused-argument
         mid,  # pylint: disable=unused-argument
         granted_qos,  # pylint: disable=unused-argument

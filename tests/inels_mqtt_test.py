@@ -5,6 +5,14 @@ from unittest.mock import patch, Mock
 from unittest import TestCase
 
 from inelsmqtt import InelsMqtt
+from inelsmqtt.const import (
+    MQTT_HOST,
+    MQTT_PASSWORD,
+    MQTT_PORT,
+    MQTT_USERNAME,
+    PROTO_5,
+    MQTT_PROTOCOL,
+)
 
 from tests.const import (
     TEST_INELS_MQTT_CLASS_NAMESPACE,
@@ -13,7 +21,6 @@ from tests.const import (
     TEST_PORT,
     TEST_USER_NAME,
     TEST_PASSWORD,
-    TEST_DEBUG_TRUE,
 )
 
 
@@ -29,9 +36,9 @@ class InelsMqttTest(TestCase):
 
         # mocking mqtt broker client
         self.patches = [
-            patch(f"{TEST_INELS_MQTT_NAMESPACE}.MqttClient", return_value=Mock()),
+            patch(f"{TEST_INELS_MQTT_NAMESPACE}.mqtt.Client", return_value=Mock()),
             patch(
-                f"{TEST_INELS_MQTT_NAMESPACE}.MqttClient.username_pw_set",
+                f"{TEST_INELS_MQTT_NAMESPACE}.mqtt.Client.username_pw_set",
                 return_value=Mock(),
             ),
             patch(f"{TEST_INELS_MQTT_NAMESPACE}._LOGGER", return_value=Mock()),
@@ -40,9 +47,15 @@ class InelsMqttTest(TestCase):
         for item in self.patches:
             item.start()
 
-        self.mqtt = InelsMqtt(
-            TEST_HOST, TEST_PORT, TEST_USER_NAME, TEST_PASSWORD, TEST_DEBUG_TRUE
-        )
+        config = {
+            MQTT_HOST: TEST_HOST,
+            MQTT_PORT: TEST_PORT,
+            MQTT_USERNAME: TEST_USER_NAME,
+            MQTT_PASSWORD: TEST_PASSWORD,
+            MQTT_PROTOCOL: PROTO_5,
+        }
+
+        self.mqtt = InelsMqtt(config)
 
     def tearDown(self) -> None:
         """Destroy all instances and stop all patches
@@ -60,18 +73,6 @@ class InelsMqttTest(TestCase):
         )
         self.assertEqual(
             self.mqtt._InelsMqtt__port, TEST_PORT  # pylint: disable=protected-access
-        )
-        self.assertEqual(
-            self.mqtt._InelsMqtt__user_name,  # pylint: disable=protected-access
-            TEST_USER_NAME,
-        )
-        self.assertEqual(
-            self.mqtt._InelsMqtt__password,  # pylint: disable=protected-access
-            TEST_PASSWORD,
-        )
-        self.assertEqual(
-            self.mqtt._InelsMqtt__debug,  # pylint: disable=protected-access
-            TEST_DEBUG_TRUE,
         )
 
     def test_is_available_true_false_based_on__on_connect_function(self) -> None:
@@ -98,26 +99,10 @@ class InelsMqttTest(TestCase):
         on_connect(self, 135)
         self.assertEqual(self.mqtt.is_available, False)
 
-    def test_is_available_false_based_on__on_connection_failed(self) -> None:
-        """Testing if is broker not available with result False."""
-
-        # is_available is default false, so wee need to managed this by
-        # calling __on_connect with success result_code
-        self.mqtt._InelsMqtt__on_connect(  # pylint: disable=protected-access
-            self.mqtt, Mock(), Mock(), 0, None
-        )
-        self.assertEqual(self.mqtt.is_available, True)
-
-        # now we can call __on_connect_fail to test setter of is_available
-        self.mqtt._InelsMqtt__on_connect_fail(  # pylint: disable=protected-access
-            self.mqtt, Mock()
-        )
-        self.assertEqual(self.mqtt.is_available, False)
-
     @patch(
         f"{TEST_INELS_MQTT_CLASS_NAMESPACE}._InelsMqtt__connect", return_value=Mock()
     )
-    @patch(f"{TEST_INELS_MQTT_NAMESPACE}.MqttClient.subscribe", return_value=Mock())
+    @patch(f"{TEST_INELS_MQTT_NAMESPACE}.mqtt.Client.subscribe", return_value=Mock())
     def test_discovery_all_with_tree_messages(
         self, mock_connect, mock_broker_subscribe
     ) -> None:
@@ -143,7 +128,7 @@ class InelsMqttTest(TestCase):
     @patch(
         f"{TEST_INELS_MQTT_CLASS_NAMESPACE}._InelsMqtt__connect", return_value=Mock()
     )
-    @patch(f"{TEST_INELS_MQTT_NAMESPACE}.MqttClient.subscribe", return_value=Mock())
+    @patch(f"{TEST_INELS_MQTT_NAMESPACE}.mqtt.Client.subscribe", return_value=Mock())
     def test_subscribe_message(self, mock_connect, mock_broker_subscribe) -> None:
         """Testing subscribtion of the message from the broker."""
 

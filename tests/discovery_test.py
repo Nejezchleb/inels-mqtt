@@ -5,11 +5,18 @@
 from unittest.mock import patch, Mock
 from unittest import TestCase
 
+from inelsmqtt.const import (
+    MQTT_HOST,
+    MQTT_PASSWORD,
+    MQTT_PORT,
+    MQTT_USERNAME,
+    PROTO_5,
+    MQTT_PROTOCOL,
+)
 from inelsmqtt.discovery import InelsDiscovery
 from inelsmqtt import InelsMqtt
 
 from tests.const import (
-    TEST_DEBUG_TRUE,
     TEST_HOST,
     TEST_INELS_MQTT_CLASS_NAMESPACE,
     TEST_INELS_MQTT_NAMESPACE,
@@ -31,9 +38,9 @@ class DiscoveryTest(TestCase):
         """Setup all patches and instances for Discovery testing"""
         # mocking mqtt broker client
         self.patches = [
-            patch(f"{TEST_INELS_MQTT_NAMESPACE}.MqttClient", return_value=Mock()),
+            patch(f"{TEST_INELS_MQTT_NAMESPACE}.mqtt.Client", return_value=Mock()),
             patch(
-                f"{TEST_INELS_MQTT_NAMESPACE}.MqttClient.username_pw_set",
+                f"{TEST_INELS_MQTT_NAMESPACE}.mqtt.Client.username_pw_set",
                 return_value=Mock(),
             ),
             patch(f"{TEST_INELS_MQTT_NAMESPACE}._LOGGER", return_value=Mock()),
@@ -42,9 +49,15 @@ class DiscoveryTest(TestCase):
         for item in self.patches:
             item.start()
 
-        mqtt = InelsMqtt(
-            TEST_HOST, TEST_PORT, TEST_USER_NAME, TEST_PASSWORD, TEST_DEBUG_TRUE
-        )
+        config = {
+            MQTT_HOST: TEST_HOST,
+            MQTT_PORT: TEST_PORT,
+            MQTT_USERNAME: TEST_USER_NAME,
+            MQTT_PASSWORD: TEST_PASSWORD,
+            MQTT_PROTOCOL: PROTO_5,
+        }
+
+        mqtt = InelsMqtt(config)
 
         self.i_dis = InelsDiscovery(mqtt)
 

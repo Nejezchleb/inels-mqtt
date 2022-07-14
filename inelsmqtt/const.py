@@ -1,4 +1,8 @@
 """Constances of inels-mqtt."""
+from __future__ import annotations
+
+from typing import Final
+
 
 NAME = "inels-mqtt"
 
@@ -37,5 +41,16 @@ DEVICE_PLATFORMS = {
     SWITCH: {SWITCH_ON: True, SWITCH_OFF: False},
     LIGHT: {LIGHT_ON: True, LIGHT_OFF: False},
 }
+
+MQTT_TIMEOUT: Final = "timeout"
+MQTT_HOST: Final = "host"
+MQTT_USERNAME: Final = "username"
+MQTT_PASSWORD: Final = "password"
+MQTT_PORT: Final = "port"
+MQTT_CLIENT_ID: Final = "client_id"
+MQTT_PROTOCOL: Final = "protocol"
+PROTO_31 = "3.1"
+PROTO_311 = "3.1.1"
+PROTO_5 = "5.0"
 
 VERSION = "0.0.1"

@@ -2,7 +2,6 @@
 import logging
 import time
 import uuid
-import queue
 
 from datetime import datetime
 from typing import Any
@@ -16,7 +15,6 @@ from .const import (
     MQTT_PORT,
     MQTT_TIMEOUT,
     MQTT_USERNAME,
-    PROTO_5,
     MQTT_PROTOCOL,
     VERSION,
     DEVICE_TYPE_DICT,
@@ -32,7 +30,6 @@ _LOGGER = logging.getLogger(__name__)
 
 # when no topic were detected, then stop discovery
 __DISCOVERY_TIMEOUT__ = DISCOVERY_TIMEOUT_IN_SEC
-__CONNECTION_TIMEOUT__ = 15  # it has seconds for connecting to broker
 
 
 class InelsMqtt:
@@ -50,10 +47,9 @@ class InelsMqtt:
             port (int): broker port on which listening
             debug (bool): flag for debuging mqtt comunication. Default False
         """
-        if config[MQTT_PROTOCOL] == PROTO_5:
-            proto = mqtt.MQTTv5
-        else:
-            proto = mqtt.MQTTv311
+        proto = (
+            config.get(MQTT_PROTOCOL) if config.get(MQTT_PROTOCOL) else mqtt.MQTTv311
+        )
 
         if (client_id := config.get(MQTT_CLIENT_ID)) is None:
             client_id = mqtt.base62(uuid.uuid4().int, padding=22)
@@ -71,9 +67,10 @@ class InelsMqtt:
         self.__port = config[MQTT_PORT]
 
         _t = config.get(MQTT_TIMEOUT)
-        self.__timeout = _t if _t is not None else DISCOVERY_TIMEOUT_IN_SEC
-        self.__con_que = queue.Queue(maxsize=1)
+        self.__timeout = _t if _t is not None else __DISCOVERY_TIMEOUT__
 
+        self.__try_connect = False
+        self.__message_readed = False
         self.__messages = dict[str, str]()
         self.__is_available = False
         self.__discover_start_time = None
@@ -121,8 +118,19 @@ class InelsMqtt:
         purposes.
         """
         self.__client.on_connect = self.__on_connect
-        self.__client.connect_async(self.__host, self.__port)
+        self.__client.connect(self.__host, self.__port)
         self.__client.loop_start()
+
+        start_time = datetime.now()
+
+        while self.__try_connect is False:
+            # there should be timeout to discover all topics
+            time_delta = datetime.now() - start_time
+            if time_delta.total_seconds() > self.__timeout:
+                self.__try_connect = self.__is_available = False
+                break
+
+            time.sleep(0.1)
 
     def __on_connect(
         self,
@@ -138,13 +146,13 @@ class InelsMqtt:
             client (MqttClient): instance of mqtt client
             properties (_type_, optional): Props from mqtt sets. Defaults None
         """
-        self.__con_que.put(reason_code == mqtt.CONNACK_ACCEPTED)
-        self.__is_available = self.__con_que.get(timeout=self.__timeout)
+        self.__try_connect = True
+        self.__is_available = reason_code == mqtt.CONNACK_ACCEPTED
         _LOGGER.info(
             "Mqtt broker %s:%s %s",
             self.__host,
             self.__port,
-            "is connected" if reason_code == 0 else "is not connected",
+            "is connected" if self.__is_available else "is not connected",
         )
 
     def publish(self, topic, payload, qos=0, retain=True, properties=None) -> bool:
@@ -170,10 +178,10 @@ class InelsMqtt:
 
         start_time = datetime.now()
 
-        while True:
+        while self.__published is False:
             # there should be timeout to discover all topics
             time_delta = datetime.now() - start_time
-            if time_delta.total_seconds() > __DISCOVERY_TIMEOUT__:
+            if time_delta.total_seconds() > self.__timeout:
                 self.__published = False
                 break
 
@@ -213,6 +221,7 @@ class InelsMqtt:
             properties (_type_, optional): Props from mqtt set.
               Defaults to None.
         """
+        self.__message_readed = False
         self.__connect()
         self.client.on_message = self.__on_message
         self.client.on_subscribe = self.__on_subscribe
@@ -220,10 +229,11 @@ class InelsMqtt:
 
         start_time = datetime.now()
 
-        while True:
+        while self.__message_readed is False:
             # there should be timeout to discover all topics
             time_delta = datetime.now() - start_time
-            if time_delta.total_seconds() > __DISCOVERY_TIMEOUT__:
+            if time_delta.total_seconds() > self.__timeout:
+                self.__message_readed = False
                 break
 
             time.sleep(0.1)
@@ -262,7 +272,7 @@ class InelsMqtt:
         while True:
             # there should be timeout to discover all topics
             time_delta = datetime.now() - self.__discover_start_time
-            if time_delta.total_seconds() > __DISCOVERY_TIMEOUT__:
+            if time_delta.total_seconds() > self.__timeout:
                 break
 
             time.sleep(0.1)
@@ -307,6 +317,7 @@ class InelsMqtt:
             userdata (_type_): Date about user
             msg (object): Topic with payload from broker
         """
+        self.__message_readed = True
         device_type = msg.topic.split("/")[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]
 
         if device_type in DEVICE_TYPE_DICT:

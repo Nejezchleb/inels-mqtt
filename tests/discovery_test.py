@@ -80,9 +80,13 @@ class DiscoveryTest(TestCase):
     def test_discovery(self, mock_discovery_all) -> None:
         """Test get list of devices"""
 
-        devices = self.i_dis.discovery()
+        coordinators_with_devices = self.i_dis.discovery()
+
+        devices = self.i_dis.devices
 
         self.assertGreater(len(devices), 0)
+        self.assertGreater(len(self.i_dis.coordinators), 0)
+        self.assertGreater(len(coordinators_with_devices), 0)
 
         mock_discovery_all.assert_called()
         mock_discovery_all.assert_called_once()

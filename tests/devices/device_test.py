@@ -89,12 +89,7 @@ class DeviceTest(TestCase):
 
         fragments = TEST_TOPIC_STATE.split("/")
 
-        set_topic = f"""
-            {fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/
-            {fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/
-            set/
-            {fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/
-            {fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"""
+        set_topic = f"{fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/set/{fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"  # noqa: 501
 
         self.assertEqual(
             dev_no_title.unique_id, fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]

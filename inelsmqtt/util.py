@@ -36,9 +36,25 @@ class DeviceValue(object):
     def __find_inels_value(self) -> None:
         """Find inels mqtt value for specific device."""
         if self.__device_type == SWITCH:
-            self.__inels_value = list(SWITCH_STATE.keys())[
-                list(SWITCH_STATE.values()).index(self.__ha_value)
-            ]
+            self.__inels_value = self.__find_keys_by_value(
+                SWITCH_STATE, self.__ha_value
+            )
+
+    def __find_keys_by_value(self, array: dict, value) -> Any:
+        """Return key from dict by value
+
+        Args:
+            array (dict): dictionary where should I have to search
+            value Any: by this value I'm goning to find key
+        Returns:
+            Any: value of the dict key
+        """
+        keys = list(array.keys())
+        vals = list(array.values())
+
+        index = vals.index(value)
+
+        return keys[index]
 
     @property
     def ha_value(self) -> Any:

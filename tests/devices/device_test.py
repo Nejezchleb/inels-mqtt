@@ -1,8 +1,9 @@
 """Unit tests for Device class
     handling device operations
 """
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from unittest import TestCase
+from inelsmqtt import InelsMqtt
 
 from inelsmqtt.devices import Device, DeviceInfo
 from inelsmqtt.const import (
@@ -11,10 +12,26 @@ from inelsmqtt.const import (
     FRAGMENT_DOMAIN,
     FRAGMENT_SERIAL_NUMBER,
     FRAGMENT_UNIQUE_ID,
+    SWITCH_ON,
+    SWITCH_OFF,
     TOPIC_FRAGMENTS,
+    MQTT_HOST,
+    MQTT_PORT,
+    MQTT_USERNAME,
+    MQTT_PASSWORD,
+    MQTT_PROTOCOL,
+    PROTO_5,
 )
 
-from tests.const import TEST_TOPIC_STATE
+from tests.const import (
+    TEST_TOPIC_STATE,
+    TEST_INELS_MQTT_NAMESPACE,
+    TEST_INELS_MQTT_CLASS_NAMESPACE,
+    TEST_HOST,
+    TEST_PORT,
+    TEST_USER_NAME,
+    TEST_PASSWORD,
+)
 
 
 class DeviceTest(TestCase):
@@ -26,7 +43,27 @@ class DeviceTest(TestCase):
 
     def setUp(self) -> None:
         """Setup all patches and instances for device testing"""
-        self.device = Device(Mock(), TEST_TOPIC_STATE, "Device")
+        self.patches = [
+            patch(f"{TEST_INELS_MQTT_NAMESPACE}.mqtt.Client", return_value=Mock()),
+            patch(
+                f"{TEST_INELS_MQTT_NAMESPACE}.mqtt.Client.username_pw_set",
+                return_value=Mock(),
+            ),
+            patch(f"{TEST_INELS_MQTT_NAMESPACE}._LOGGER", return_value=Mock()),
+        ]
+
+        for item in self.patches:
+            item.start()
+
+        config = {
+            MQTT_HOST: TEST_HOST,
+            MQTT_PORT: TEST_PORT,
+            MQTT_USERNAME: TEST_USER_NAME,
+            MQTT_PASSWORD: TEST_PASSWORD,
+            MQTT_PROTOCOL: PROTO_5,
+        }
+
+        self.device = Device(InelsMqtt(config), TEST_TOPIC_STATE, "Device")
 
     def tearDown(self) -> None:
         """Destroy all instances and stop patches"""
@@ -35,12 +72,11 @@ class DeviceTest(TestCase):
     def test_initialize_device(self) -> None:
         """Test initialization of device object"""
         title = "Device 1"
-        data = '{"power": "on"}'
 
         # device without title
-        dev_no_title = Device(Mock(), TEST_TOPIC_STATE, data)
+        dev_no_title = Device(Mock(), TEST_TOPIC_STATE)
         # device with title
-        dev_with_title = Device(Mock(), TEST_TOPIC_STATE, data, title)
+        dev_with_title = Device(Mock(), TEST_TOPIC_STATE, title)
 
         self.assertIsNotNone(dev_no_title)
         self.assertIsNotNone(dev_with_title)
@@ -73,6 +109,28 @@ class DeviceTest(TestCase):
 
         self.assertEqual(dev_no_title.set_topic, set_topic)
         self.assertEqual(dev_with_title.set_topic, set_topic)
+
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.publish")
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.subscribe")
+    def test_set_paylod(self, mock_subscribe, mock_publish) -> None:
+        """Test set payload of the device."""
+        self.assertTrue(self.device.set_ha_value(True))
+
+        mock_subscribe.return_value = SWITCH_ON
+        mock_publish.return_value = True
+
+        rt_val = self.device.get_value()
+        self.assertTrue(rt_val.ha_value)
+        self.assertEqual(rt_val.inels_value, SWITCH_ON)
+
+        self.assertTrue(self.device.set_ha_value(False))
+
+        mock_subscribe.return_value = SWITCH_OFF
+        mock_publish.return_value = False
+
+        rt_val = self.device.get_value()
+        self.assertFalse(rt_val.ha_value)
+        self.assertEqual(rt_val.inels_value, SWITCH_OFF)
 
     def test_info_serialized(self) -> None:
         """Test of the serialized info."""

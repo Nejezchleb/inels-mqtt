@@ -2,6 +2,9 @@
 import logging
 import json
 
+from typing import Any
+
+from inelsmqtt.util import DeviceValue
 from inelsmqtt import InelsMqtt
 from inelsmqtt.const import (
     DEVICE_TYPE_DICT,
@@ -26,7 +29,6 @@ class Device(object):
         self,
         mqtt: InelsMqtt,
         state_topic: str,
-        payload: str,
         title: str = None,
     ) -> None:
         """Initialize instance of device
@@ -35,7 +37,6 @@ class Device(object):
             mqtt (InelsMqtt): instance of mqtt broker
             status_topic (str): String format of status topic
             set_topic (str): Sring format of set topic
-            payload (str): Value carried inside of the topic
             title (str, optional): Formal name of the device. When None
             then will be same as unique_id. Defaults to None.
         """
@@ -54,7 +55,6 @@ class Device(object):
             set/
             {fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/
             {fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"""
-        self.__payload = payload
         self.__title = title if title is not None else self.__unique_id
         self.__domain = fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]
 
@@ -104,24 +104,6 @@ class Device(object):
         return self.__mqtt.is_available
 
     @property
-    def value(self) -> str:
-        """Get value from the mqtt broker."""
-        return self.__mqtt.subscribe(self.__state_topic)
-
-    @value.setter
-    def value(self, payload) -> bool:
-        """Set the value into the broker
-
-        Args:
-            payload (str): Data inserted into the set topic
-
-        Returns:
-            bool: Result of publish
-        """
-        self.__payload = payload
-        return self.__mqtt.publish(self.__set_topic, self.__payload)
-
-    @property
     def set_topic(self) -> str:
         """Set topic
 
@@ -148,6 +130,39 @@ class Device(object):
             str: Name of the domain
         """
         return self.__domain
+
+    def get_value(self) -> DeviceValue:
+        """Get value from inels
+
+        Returns:
+            Any: DeviceValue
+        """
+        val = self.__mqtt.subscribe(self.__state_topic)
+        return DeviceValue(self.__device_type, inels_value=val)
+
+    def set_ha_value(self, value: Any) -> bool:
+        """Set HA value. Will automaticaly convert HA value
+        into the inels value format.
+
+        Args:
+            value (Any): Object value belonging to HA device
+        Returns:
+            true/false if publishing is successfull or not
+        """
+        dev = DeviceValue(self.__device_type, ha_value=value)
+        return self.__mqtt.publish(self.__set_topic, dev.inels_value)
+
+    def set_inels_value(self, value: str) -> bool:
+        """Set the value into the broker
+
+        Args:
+            payload (str): Data inserted into the set topic
+
+        Returns:
+            true/false if publishing is successfull or not
+        """
+        dev = DeviceValue(self.__device_type, inels_value=value)
+        return self.__mqtt.publish(self.__set_topic, dev.inels_value)
 
     def info(self):
         """Device info."""

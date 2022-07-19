@@ -34,6 +34,11 @@ TOPIC_FRAGMENTS = {
 SWITCH_ON = "FF\n50\n32\nAC\n"
 SWITCH_OFF = "FF\nFF\nFF\nFF\n"
 
+SWITCH_STATE = {
+    SWITCH_ON: True,
+    SWITCH_OFF: False,
+}
+
 LIGHT_ON = "Aadfadfadf"
 LIGHT_OFF = "adfwerafad"
 
@@ -51,6 +56,6 @@ MQTT_CLIENT_ID: Final = "client_id"
 MQTT_PROTOCOL: Final = "protocol"
 PROTO_31 = "3.1"
 PROTO_311 = "3.1.1"
-PROTO_5 = "5.0"
+PROTO_5 = 5
 
 VERSION = "0.0.1"

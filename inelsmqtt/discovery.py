@@ -43,7 +43,7 @@ class InelsDiscovery(object):
             list[Device]: List of Device object
         """
         devs = self.__mqtt.discovery_all()
-        self.__devices = [Device(self.__mqtt, item, devs[item]) for item in devs]
+        self.__devices = [Device(self.__mqtt, item) for item in devs]
 
         for item in self.__devices:
             if item.parent_id not in self.__coordinators:

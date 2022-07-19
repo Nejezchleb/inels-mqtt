@@ -49,12 +49,7 @@ class Device(object):
         self.__unique_id = fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]
         self.__parent_id = fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]
         self.__state_topic = state_topic
-        self.__set_topic = f"""
-            {fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/
-            {fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/
-            set/
-            {fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/
-            {fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"""
+        self.__set_topic = f"{fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/set/{fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"  # noqa: E501
         self.__title = title if title is not None else self.__unique_id
         self.__domain = fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]
 

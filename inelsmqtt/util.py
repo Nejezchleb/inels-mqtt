@@ -36,7 +36,9 @@ class DeviceValue(object):
     def __find_inels_value(self) -> None:
         """Find inels mqtt value for specific device."""
         if self.__device_type == SWITCH:
-            self.__inels_value = self.__find_keys_by_value(SWITCH_STATE, self.__ha_value)
+            self.__inels_value = self.__find_keys_by_value(
+                SWITCH_STATE, self.__ha_value
+            )
 
     def __find_keys_by_value(self, array: dict, value) -> Any:
         """Return key from dict by value

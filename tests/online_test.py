@@ -40,4 +40,3 @@ class OnlineTest(TestCase):
         device.set_ha_value(False)
 
         device.set_ha_value(True)
-

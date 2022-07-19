@@ -31,8 +31,8 @@ TOPIC_FRAGMENTS = {
     FRAGMENT_UNIQUE_ID: 4,
 }
 
-SWITCH_ON = "FF\n50\n32\nAC\n"
-SWITCH_OFF = "FF\nFF\nFF\nFF\n"
+SWITCH_ON = "FF\\n50\\n32\\nAC\\n"
+SWITCH_OFF = "FF\\nFF\\nFF\\nFF\\n"
 
 SWITCH_STATE = {
     SWITCH_ON: True,

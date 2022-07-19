@@ -2,6 +2,7 @@
 """
 from unittest import TestCase
 from inelsmqtt import InelsMqtt
+from inelsmqtt.devices import Device
 
 
 class OnlineTest(TestCase):
@@ -13,12 +14,6 @@ class OnlineTest(TestCase):
 
     def setUp(self) -> None:
         """Setup."""
-
-    def tearDown(self) -> None:
-        """Tear down."""
-
-    def test_connect(self) -> None:
-        """Connect test."""
         config = {
             "host": "192.168.2.5",
             "port": 2883,
@@ -27,7 +22,22 @@ class OnlineTest(TestCase):
             "protocol": 5,
         }
 
-        mqtt = InelsMqtt(config)
-        result = mqtt.test_connection()
+        self.mqtt = InelsMqtt(config)
 
+    def tearDown(self) -> None:
+        """Tear down."""
+        self.mqtt = None
+
+    def test_connect(self) -> None:
+        """Connect test."""
+
+        result = self.mqtt.test_connection()
         self.assertTrue(result)
+
+    def test_publish(self) -> None:
+        """Publish data to the borker."""
+        device = Device(self.mqtt, "inels/002C6A6F10/set/01/040707FF")
+        device.set_ha_value(False)
+
+        device.set_ha_value(True)
+

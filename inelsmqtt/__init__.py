@@ -206,7 +206,7 @@ class InelsMqtt:
             mid (_type_): MID
         """
         self.__published = True
-        _LOGGER.log(f"Client: {client}")
+        _LOGGER.info("Published: %s", mid)
 
     def subscribe(self, topic, qos=0, options=None, properties=None) -> str:
         """Subscribe to selected topic. Will connect, set all

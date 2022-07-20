@@ -55,6 +55,11 @@ class InelsMqtt:
             client_id = mqtt.base62(uuid.uuid4().int, padding=22)
 
         self.__client = mqtt.Client(client_id, protocol=proto)
+
+        self.__client.on_connect = self.__on_connect
+        self.client.on_publish = self.__on_publish
+        self.client.on_subscribe = self.__on_subscribe
+
         self.__client.enable_logger()
 
         u_name = config.get(MQTT_USERNAME)
@@ -109,7 +114,7 @@ class InelsMqtt:
             bool: Is broker available or not
         """
         self.__connect()
-        self.__disconnect()
+        self.close()
 
         return self.__is_available
 
@@ -117,10 +122,10 @@ class InelsMqtt:
         """Create connection and register callback function to neccessary
         purposes.
         """
-        self.__client.on_connect = self.__on_connect
-        self.__client.connect(self.__host, self.__port)
-        self.__client.loop_start()
+        if self.__client.is_connected() is False:
+            self.__client.connect(self.__host, self.__port)
 
+        self.__client.loop_start()
         start_time = datetime.now()
 
         while self.__try_connect is False:
@@ -170,10 +175,8 @@ class InelsMqtt:
             properties (_type_, optional): Props from mqtt sets.
               Defaults to None.
         """
-        self.__connect()
-        self.client.on_publish = self.__on_publish
-
         self.__published = False
+        self.__connect()
         self.client.publish(topic, payload, qos, retain, properties)
 
         start_time = datetime.now()
@@ -187,7 +190,7 @@ class InelsMqtt:
 
             time.sleep(0.1)
 
-        self.__disconnect()
+        self.close()
 
         return self.__published
 
@@ -222,9 +225,9 @@ class InelsMqtt:
               Defaults to None.
         """
         self.__message_readed = False
-        self.__connect()
         self.client.on_message = self.__on_message
-        self.client.on_subscribe = self.__on_subscribe
+
+        self.__connect()
         self.client.subscribe(topic, qos, options, properties)
 
         start_time = datetime.now()
@@ -238,7 +241,7 @@ class InelsMqtt:
 
             time.sleep(0.1)
 
-        self.__disconnect()
+        self.close()
         return self.__messages[topic]
 
     def discovery_all(self) -> dict[str, str]:
@@ -262,9 +265,9 @@ class InelsMqtt:
         Returns:
             dict[str, str]: Dictionary of all topics with their payloads
         """
-        self.__connect()
         self.client.on_message = self.__on_discover
-        self.client.on_subscribe = self.__on_subscribe
+
+        self.__connect()
         self.client.subscribe(MQTT_DISCOVER_TOPIC, 0, None, None)
 
         self.__discover_start_time = datetime.now()
@@ -277,7 +280,7 @@ class InelsMqtt:
 
             time.sleep(0.1)
 
-        self.__disconnect()
+        self.close()
         return self.__messages
 
     def __on_discover(
@@ -346,7 +349,12 @@ class InelsMqtt:
 
     def __disconnect(self) -> None:
         """Disconnecting from broker and stopping broker's loop"""
+        if self.client.is_connected() is True:
+            self.client.loop_stop()
         self.client.disconnect()
+
+    def close(self) -> None:
+        """Close loop."""
         self.client.loop_stop()
 
     def disconnect(self) -> None:

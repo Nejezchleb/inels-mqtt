@@ -112,7 +112,7 @@ class DeviceTest(TestCase):
         self.assertTrue(self.device.set_ha_value(True))
 
         # SWITCH_ON needs to be encoded becasue broker returns value as a byte
-        mock_messages.return_value = { TEST_TOPIC_STATE: SWITCH_ON.encode() }
+        mock_messages.return_value = {TEST_TOPIC_STATE: SWITCH_ON.encode()}
         mock_publish.return_value = True
 
         rt_val = self.device.get_value()
@@ -121,7 +121,7 @@ class DeviceTest(TestCase):
 
         self.assertTrue(self.device.set_ha_value(False))
 
-        mock_messages.return_value = { TEST_TOPIC_STATE: SWITCH_OFF.encode() }
+        mock_messages.return_value = {TEST_TOPIC_STATE: SWITCH_OFF.encode()}
         mock_publish.return_value = False
 
         rt_val = self.device.get_value()

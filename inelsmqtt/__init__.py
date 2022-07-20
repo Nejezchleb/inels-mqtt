@@ -19,6 +19,7 @@ from .const import (
     VERSION,
     DEVICE_TYPE_DICT,
     FRAGMENT_DEVICE_TYPE,
+    FRAGMENT_STATE,
     TOPIC_FRAGMENTS,
     DISCOVERY_TIMEOUT_IN_SEC,
     MQTT_DISCOVER_TOPIC,
@@ -114,7 +115,7 @@ class InelsMqtt:
             bool: Is broker available or not
         """
         self.__connect()
-        self.close()
+        self.disconnect()
 
         return self.__is_available
 
@@ -124,8 +125,8 @@ class InelsMqtt:
         """
         if self.__client.is_connected() is False:
             self.__client.connect(self.__host, self.__port)
+            self.__client.loop_start()
 
-        self.__client.loop_start()
         start_time = datetime.now()
 
         while self.__try_connect is False:
@@ -190,8 +191,6 @@ class InelsMqtt:
 
             time.sleep(0.1)
 
-        self.close()
-
         return self.__published
 
     def __on_publish(
@@ -211,7 +210,7 @@ class InelsMqtt:
         self.__published = True
         _LOGGER.info("Published: %s", mid)
 
-    def subscribe(self, topic, qos=0, options=None, properties=None) -> str:
+    def subscribe(self, topic, qos=0, options=None, properties=None) -> Any:
         """Subscribe to selected topic. Will connect, set all
         callback function and subscribe to the topic. After that
         will automatically disconnect from broker.
@@ -241,7 +240,6 @@ class InelsMqtt:
 
             time.sleep(0.1)
 
-        self.close()
         return self.__messages[topic]
 
     def discovery_all(self) -> dict[str, str]:
@@ -280,7 +278,6 @@ class InelsMqtt:
 
             time.sleep(0.1)
 
-        self.close()
         return self.__messages
 
     def __on_discover(
@@ -302,9 +299,11 @@ class InelsMqtt:
         self.__discover_start_time = datetime.now()
 
         # pass only those who belongs to known device types
-        device_type = msg.topic.split("/")[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]
+        fragments = msg.topic.split("/")
+        device_type = fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]
+        status = fragments[TOPIC_FRAGMENTS[FRAGMENT_STATE]]
 
-        if device_type in DEVICE_TYPE_DICT:
+        if device_type in DEVICE_TYPE_DICT and status == "status":
             self.__messages[msg.topic] = msg.payload
 
     def __on_message(
@@ -349,8 +348,7 @@ class InelsMqtt:
 
     def __disconnect(self) -> None:
         """Disconnecting from broker and stopping broker's loop"""
-        if self.client.is_connected() is True:
-            self.client.loop_stop()
+        self.close()
         self.client.disconnect()
 
     def close(self) -> None:

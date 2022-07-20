@@ -1,7 +1,7 @@
 """Unit tests for Device class
     handling device operations
 """
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, PropertyMock
 from unittest import TestCase
 from inelsmqtt import InelsMqtt
 
@@ -106,12 +106,13 @@ class DeviceTest(TestCase):
         self.assertEqual(dev_with_title.set_topic, set_topic)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.publish")
-    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.subscribe")
-    def test_set_paylod(self, mock_subscribe, mock_publish) -> None:
+    @patch("inelsmqtt.InelsMqtt.messages", new_callable=PropertyMock)
+    def test_set_payload(self, mock_messages, mock_publish) -> None:
         """Test set payload of the device."""
         self.assertTrue(self.device.set_ha_value(True))
 
-        mock_subscribe.return_value = SWITCH_ON
+        # SWITCH_ON needs to be encoded becasue broker returns value as a byte
+        mock_messages.return_value = {TEST_TOPIC_STATE: SWITCH_ON.encode()}
         mock_publish.return_value = True
 
         rt_val = self.device.get_value()
@@ -120,7 +121,7 @@ class DeviceTest(TestCase):
 
         self.assertTrue(self.device.set_ha_value(False))
 
-        mock_subscribe.return_value = SWITCH_OFF
+        mock_messages.return_value = {TEST_TOPIC_STATE: SWITCH_OFF.encode()}
         mock_publish.return_value = False
 
         rt_val = self.device.get_value()

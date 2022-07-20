@@ -138,8 +138,10 @@ class Device(object):
         Returns:
             Any: DeviceValue
         """
-        val = self.__mqtt.subscribe(self.__state_topic)
-        dev_value = DeviceValue(self.__device_type, inels_value=val)
+        val = self.__mqtt.messages.get(self.state_topic)
+        dev_value = DeviceValue(
+            self.__device_type, inels_value=(val.decode() if val is not None else None)
+        )
 
         self.__state = dev_value.ha_value
 

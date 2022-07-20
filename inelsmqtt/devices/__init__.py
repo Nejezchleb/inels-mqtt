@@ -52,6 +52,7 @@ class Device(object):
         self.__set_topic = f"{fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/set/{fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"  # noqa: E501
         self.__title = title if title is not None else self.__unique_id
         self.__domain = fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]
+        self.__state: Any = None
 
     @property
     def unique_id(self) -> str:
@@ -126,6 +127,11 @@ class Device(object):
         """
         return self.__domain
 
+    @property
+    def state(self) -> Any:
+        """State of the device."""
+        return self.__state
+
     def get_value(self) -> DeviceValue:
         """Get value from inels
 
@@ -133,7 +139,11 @@ class Device(object):
             Any: DeviceValue
         """
         val = self.__mqtt.subscribe(self.__state_topic)
-        return DeviceValue(self.__device_type, inels_value=val)
+        dev_value = DeviceValue(self.__device_type, inels_value=val)
+
+        self.__state = dev_value.ha_value
+
+        return dev_value
 
     def set_ha_value(self, value: Any) -> bool:
         """Set HA value. Will automaticaly convert HA value
@@ -145,6 +155,9 @@ class Device(object):
             true/false if publishing is successfull or not
         """
         dev = DeviceValue(self.__device_type, ha_value=value)
+
+        self.__state = dev.ha_value
+
         return self.__mqtt.publish(self.__set_topic, dev.inels_value)
 
     def set_inels_value(self, value: str) -> bool:
@@ -157,6 +170,9 @@ class Device(object):
             true/false if publishing is successfull or not
         """
         dev = DeviceValue(self.__device_type, inels_value=value)
+
+        self.__state = dev.ha_value
+
         return self.__mqtt.publish(self.__set_topic, dev.inels_value)
 
     def info(self):

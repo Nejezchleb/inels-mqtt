@@ -14,8 +14,10 @@ from .const import (
     MQTT_PASSWORD,
     MQTT_PORT,
     MQTT_TIMEOUT,
+    MQTT_TRANSPORT,
     MQTT_USERNAME,
     MQTT_PROTOCOL,
+    MQTT_TRANSPORTS,
     VERSION,
     DEVICE_TYPE_DICT,
     FRAGMENT_DEVICE_TYPE,
@@ -46,16 +48,25 @@ class InelsMqtt:
             config dict[str, Any]: config for mqtt connection
             host (str): mqtt broker host. Can be IP address
             port (int): broker port on which listening
+            protocol (int): mqtt version of protocol whitch will be used
+            transport (str): transportation protocol. Can be used tcp or websockets, defaltut tcp
             debug (bool): flag for debuging mqtt comunication. Default False
         """
         proto = (
             config.get(MQTT_PROTOCOL) if config.get(MQTT_PROTOCOL) else mqtt.MQTTv311
         )
 
+        _t: str = (
+            config.get(MQTT_TRANSPORT) if config.get(MQTT_TRANSPORT) else "tcp"
+        ).lower()
+
+        if _t not in MQTT_TRANSPORTS:
+            raise Exception
+
         if (client_id := config.get(MQTT_CLIENT_ID)) is None:
             client_id = mqtt.base62(uuid.uuid4().int, padding=22)
 
-        self.__client = mqtt.Client(client_id, protocol=proto)
+        self.__client = mqtt.Client(client_id, protocol=proto, transport=_t)
 
         self.__client.on_connect = self.__on_connect
         self.client.on_publish = self.__on_publish

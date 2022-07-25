@@ -47,7 +47,7 @@ class InelsMqttTest(TestCase):
         for item in self.patches:
             item.start()
 
-        config = {
+        self.config = {
             MQTT_HOST: TEST_HOST,
             MQTT_PORT: TEST_PORT,
             MQTT_USERNAME: TEST_USER_NAME,
@@ -55,7 +55,7 @@ class InelsMqttTest(TestCase):
             MQTT_PROTOCOL: PROTO_5,
         }
 
-        self.mqtt = InelsMqtt(config)
+        self.mqtt = InelsMqtt(self.config)
 
     def tearDown(self) -> None:
         """Destroy all instances and stop all patches

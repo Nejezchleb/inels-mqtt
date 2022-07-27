@@ -1,11 +1,15 @@
 """Utility classes."""
-from typing import Any
+from typing import Any, Dict
+
+from inelsmqtt.mqtt_client import GetMessageType
 
 from .const import (
     DEVICE_TYPE_DICT,
     SWITCH,
     SWITCH_STATE,
 )
+
+ConfigType = Dict[str, str]
 
 
 class DeviceValue(object):
@@ -74,3 +78,26 @@ class DeviceValue(object):
             str: quated string from mqtt broker
         """
         return self.__inels_value
+
+
+def get_value(status: GetMessageType, platform: str) -> Any:
+    """Get value from pyload message."""
+    if platform == SWITCH:
+        return SWITCH_STATE[status]
+
+    return None
+
+
+def get_state_topic(cfg: ConfigType) -> str:
+    """Get state topic."""
+    return cfg["DDD"]
+
+
+def get_set_topic(cfg: ConfigType) -> str:
+    """Get set topic."""
+    return cfg["OOO"]
+
+
+def get_name(cfg: ConfigType) -> str:
+    """Get name of the entity."""
+    return cfg["Name"]

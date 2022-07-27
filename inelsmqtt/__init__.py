@@ -206,7 +206,7 @@ class InelsMqtt:
 
     def __on_publish(
         self,
-        client: mqtt.Client,
+        client: mqtt.Client,  # pylint: disable=unused-argument
         userdata,  # pylint: disable=unused-argument
         mid,  # pylint: disable=unused-argument
     ) -> None:

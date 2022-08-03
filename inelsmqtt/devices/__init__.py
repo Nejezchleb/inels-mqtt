@@ -13,6 +13,7 @@ from inelsmqtt.const import (
     FRAGMENT_DEVICE_TYPE,
     FRAGMENT_SERIAL_NUMBER,
     FRAGMENT_UNIQUE_ID,
+    DEVICE_CONNCTED,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,10 +50,14 @@ class Device(object):
         self.__unique_id = fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]
         self.__parent_id = fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]
         self.__state_topic = state_topic
-        self.__set_topic = f"{fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/set/{fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"  # noqa: E501
+        self.__set_topic = f"{fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/set/{fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"  # noqa: E501
+        self.__connected_topic = f"{fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/connected/{fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"  # noqa: E501
         self.__title = title if title is not None else self.__unique_id
         self.__domain = fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]
         self.__state: Any = None
+
+        # subscribe availability
+        self.__mqtt.subscribe(self.__connected_topic, 0, None, None)
 
     @property
     def unique_id(self) -> str:
@@ -97,7 +102,7 @@ class Device(object):
         Returns:
             bool: True/False
         """
-        return self.__mqtt.is_available
+        return DEVICE_CONNCTED.get(self.__mqtt.messages[self.__connected_topic])
 
     @property
     def set_topic(self) -> str:
@@ -160,7 +165,7 @@ class Device(object):
 
         self.__state = dev.ha_value
 
-        return self.__mqtt.publish(self.__set_topic, dev.inels_value)
+        return self.__mqtt.publish(self.__set_topic, dev.inels_set_value)
 
     def set_inels_value(self, value: str) -> bool:
         """Set the value into the broker
@@ -175,7 +180,7 @@ class Device(object):
 
         self.__state = dev.ha_value
 
-        return self.__mqtt.publish(self.__set_topic, dev.inels_value)
+        return self.__mqtt.publish(self.__set_topic, dev.inels_set_value)
 
     def info(self):
         """Device info."""

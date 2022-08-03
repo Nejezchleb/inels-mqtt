@@ -43,6 +43,7 @@ class DiscoveryTest(TestCase):
                 f"{TEST_INELS_MQTT_NAMESPACE}.mqtt.Client.username_pw_set",
                 return_value=Mock(),
             ),
+            patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.subscribe", return_value=Mock()),
             patch(f"{TEST_INELS_MQTT_NAMESPACE}._LOGGER", return_value=Mock()),
         ]
 

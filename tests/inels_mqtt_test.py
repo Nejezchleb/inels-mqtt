@@ -110,9 +110,9 @@ class InelsMqttTest(TestCase):
 
         # initialize three topics with status
         items = {
-            "inels/45464654/status/01/457544": "rrqeraad",
-            "inels/45464654/status/01/74544": "eeeqqq",
-            "inels/45464654/status/01/8887": "adfadfefe",
+            "inels/status/45464654/02/457544": "rrqeraad",
+            "inels/status/45464654/02/74544": "eeeqqq",
+            "inels/status/45464654/02/8887": "adfadfefe",
             "some/kind/of/different/topic/in/broker": "adfadf",  # should be filtered out
         }
 
@@ -132,7 +132,7 @@ class InelsMqttTest(TestCase):
     def test_subscribe_message(self, mock_connect, mock_broker_subscribe) -> None:
         """Testing subscribtion of the message from the broker."""
 
-        topic = "inels/45464654/status/01/457544"
+        topic = "inels/status/45464654/02/457544"
         msg = type(
             "msg",
             (object,),
@@ -150,10 +150,10 @@ class InelsMqttTest(TestCase):
     def test_message_property(self) -> None:
         """Test if message property returns right data."""
         dictionary = {
-            "inels/555555/status/01/3423452435": "first",
-            "inels/555555/status/01/3424524222": "second",
-            "inels/555555/status/02/452435234": "third",
-            "inels/222222/status/01/85034495": "fourth",
+            "inels/status/555555/02/3423452435": "first",
+            "inels/status/555555/02/3424524222": "second",
+            "inels/status/555555/03/452435234": "third",
+            "inels/status/222222/02/85034495": "fourth",
         }
 
         # fill up __message prop

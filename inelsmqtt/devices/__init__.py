@@ -102,7 +102,11 @@ class Device(object):
         Returns:
             bool: True/False
         """
-        return DEVICE_CONNCTED.get(self.__mqtt.messages[self.__connected_topic])
+        val = self._Device__mqtt.messages[self._Device__connected_topic]
+        if isinstance(val, (bytes, bytearray)):
+            val = val.decode()
+
+        return DEVICE_CONNCTED.get(val)
 
     @property
     def set_topic(self) -> str:

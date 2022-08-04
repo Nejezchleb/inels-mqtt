@@ -31,15 +31,15 @@ TOPIC_FRAGMENTS = {
 }
 
 DEVICE_CONNCTED = {
-    "on": True,
-    "off": False,
+    "on\n": True,
+    "off\n": False,
 }
 
-SWITCH_ON_STATE = "02\\n01\\n"
-SWITCH_OFF_STATE = "02\\n00\\n"
+SWITCH_ON_STATE = "02\n01\n"
+SWITCH_OFF_STATE = "02\n00\n"
 
-SWITCH_ON_SET = "01\\n00\\n00\\n"
-SWITCH_OFF_SET = "02\\n00\\n00\\n"
+SWITCH_ON_SET = "01\n00\n00\n"
+SWITCH_OFF_SET = "02\n00\n00\n"
 
 SWITCH_SET = {
     True: SWITCH_ON_SET,

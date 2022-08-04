@@ -89,6 +89,7 @@ class InelsMqtt:
         self.__try_connect = False
         self.__message_readed = False
         self.__messages = dict[str, str]()
+        self.__discovered = dict[str, str]()
         self.__is_available = False
         self.__discover_start_time = None
         self.__published = False
@@ -289,7 +290,9 @@ class InelsMqtt:
 
             time.sleep(0.1)
 
-        return self.__messages
+        self.__messages = self.__discovered.copy()
+
+        return self.__discovered
 
     def __on_discover(
         self,
@@ -315,7 +318,7 @@ class InelsMqtt:
         status = fragments[TOPIC_FRAGMENTS[FRAGMENT_STATE]]
 
         if device_type in DEVICE_TYPE_DICT and status == "status":
-            self.__messages[msg.topic] = msg.payload
+            self.__discovered[msg.topic] = msg.payload
 
     def __on_message(
         self,

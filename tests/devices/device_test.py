@@ -26,6 +26,8 @@ from inelsmqtt.const import (
 )
 
 from tests.const import (
+    TEST_SWITCH_AVAILABILITY_OFF,
+    TEST_SWITCH_AVAILABILITY_ON,
     TEST_TOPIC_CONNECTED,
     TEST_TOPIC_STATE,
     TEST_INELS_MQTT_NAMESPACE,
@@ -150,7 +152,7 @@ class DeviceTest(TestCase):
     def test_is_available(self, mock_messages) -> None:
         """Test of the device availability."""
 
-        mock_messages.return_value = {TEST_TOPIC_CONNECTED: "on"}
+        mock_messages.return_value = {TEST_TOPIC_CONNECTED: TEST_SWITCH_AVAILABILITY_ON}
         is_avilable = self.device.is_available
 
         self.assertTrue(is_avilable)
@@ -159,7 +161,9 @@ class DeviceTest(TestCase):
     def test_is_not_available(self, mock_messages) -> None:
         """Test of the dvice availability wit result false."""
 
-        mock_messages.return_value = {TEST_TOPIC_CONNECTED: "off"}
+        mock_messages.return_value = {
+            TEST_TOPIC_CONNECTED: TEST_SWITCH_AVAILABILITY_OFF
+        }
         is_avilable = self.device.is_available
 
         self.assertFalse(is_avilable)

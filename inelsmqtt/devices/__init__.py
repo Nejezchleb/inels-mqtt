@@ -49,7 +49,9 @@ class Device(object):
         self.__device_type = DEVICE_TYPE_DICT[
             fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]
         ]
-        self.__inels_type = INELS_DEVICE_TYPE_DICT[fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]]
+        self.__inels_type = INELS_DEVICE_TYPE_DICT[
+            fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]
+        ]
         self.__unique_id = fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]
         self.__parent_id = fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]
         self.__state_topic = state_topic

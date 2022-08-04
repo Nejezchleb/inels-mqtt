@@ -6,10 +6,22 @@ from typing import Final
 NAME = "inels-mqtt"
 
 SWITCH = "switch"
+SENSOR = "sensor"
 LIGHT = "light"
 
 # device types
-DEVICE_TYPE_DICT = {"02": SWITCH}
+DEVICE_TYPE_DICT = {
+    "02": SWITCH,
+    "10": SENSOR,
+}
+
+PLUG = "plug"
+TEMPERATURE = "temperature"
+
+INELS_DEVICE_TYPE_DICT = {
+    "02": PLUG,
+    "10": TEMPERATURE,
+}
 
 DISCOVERY_TIMEOUT_IN_SEC = 5
 

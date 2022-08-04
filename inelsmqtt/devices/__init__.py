@@ -9,6 +9,8 @@ from inelsmqtt import InelsMqtt
 from inelsmqtt.const import (
     DEVICE_TYPE_DICT,
     FRAGMENT_DOMAIN,
+    INELS_DEVICE_TYPE_DICT,
+    SENSOR,
     TOPIC_FRAGMENTS,
     FRAGMENT_DEVICE_TYPE,
     FRAGMENT_SERIAL_NUMBER,
@@ -47,10 +49,15 @@ class Device(object):
         self.__device_type = DEVICE_TYPE_DICT[
             fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]
         ]
+        self.__inels_type = INELS_DEVICE_TYPE_DICT[fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]]
         self.__unique_id = fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]
         self.__parent_id = fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]
         self.__state_topic = state_topic
-        self.__set_topic = f"{fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/set/{fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"  # noqa: E501
+        self.__set_topic = None
+
+        if self.__device_type is not SENSOR:
+            self.__set_topic = f"{fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/set/{fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"  # noqa: E501
+
         self.__connected_topic = f"{fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/connected/{fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"  # noqa: E501
         self.__title = title if title is not None else self.__unique_id
         self.__domain = fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]
@@ -67,6 +74,15 @@ class Device(object):
             str: Unique ID
         """
         return self.__unique_id
+
+    @property
+    def inels_type(self) -> str:
+        """Get inels type of the device
+
+        Returns:
+            str: Type
+        """
+        return self.__inels_type
 
     @property
     def device_type(self) -> str:
@@ -169,7 +185,11 @@ class Device(object):
 
         self.__state = dev.ha_value
 
-        return self.__mqtt.publish(self.__set_topic, dev.inels_set_value)
+        ret = False
+        if self.__set_topic is not None:
+            ret = self.__mqtt.publish(self.__set_topic, dev.inels_set_value)
+
+        return ret
 
     def set_inels_value(self, value: str) -> bool:
         """Set the value into the broker
@@ -184,7 +204,11 @@ class Device(object):
 
         self.__state = dev.ha_value
 
-        return self.__mqtt.publish(self.__set_topic, dev.inels_set_value)
+        ret = False
+        if self.__set_topic is not None:
+            self.__mqtt.publish(self.__set_topic, dev.inels_set_value)
+
+        return ret
 
     def info(self):
         """Device info."""

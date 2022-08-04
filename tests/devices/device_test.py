@@ -1,12 +1,17 @@
 """Unit tests for Device class
     handling device operations
 """
+from operator import itemgetter
+
 from unittest.mock import Mock, patch, PropertyMock
 from unittest import TestCase
 from inelsmqtt import InelsMqtt
 
 from inelsmqtt.devices import Device, DeviceInfo
 from inelsmqtt.const import (
+    BATTERY,
+    TEMP_IN,
+    TEMP_OUT,
     DEVICE_TYPE_DICT,
     FRAGMENT_DEVICE_TYPE,
     FRAGMENT_DOMAIN,
@@ -16,6 +21,7 @@ from inelsmqtt.const import (
     SWITCH_ON_SET,
     SWITCH_ON_STATE,
     SWITCH_OFF_STATE,
+    TEMP_SENSOR_DATA,
     TOPIC_FRAGMENTS,
     MQTT_HOST,
     MQTT_PORT,
@@ -26,8 +32,10 @@ from inelsmqtt.const import (
 )
 
 from tests.const import (
+    TEST_SENSOR_TOPIC_STATE,
     TEST_SWITCH_AVAILABILITY_OFF,
     TEST_SWITCH_AVAILABILITY_ON,
+    TEST_TEMPERATURE_DATA,
     TEST_TOPIC_CONNECTED,
     TEST_TOPIC_STATE,
     TEST_INELS_MQTT_NAMESPACE,
@@ -70,10 +78,12 @@ class DeviceTest(TestCase):
         }
 
         self.device = Device(InelsMqtt(config), TEST_TOPIC_STATE, "Device")
+        self.sensor = Device(InelsMqtt(config), TEST_SENSOR_TOPIC_STATE, "Sensor")
 
     def tearDown(self) -> None:
         """Destroy all instances and stop patches"""
         self.device = None
+        self.sensor = None
 
     def test_initialize_device(self) -> None:
         """Test initialization of device object"""
@@ -167,3 +177,40 @@ class DeviceTest(TestCase):
         is_avilable = self.device.is_available
 
         self.assertFalse(is_avilable)
+
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages", new_callable=PropertyMock)
+    def test_temperature_parsing(self, mock_message) -> None:
+        """Test parsing teperature data to relevant format."""
+        mock_message.return_value = {TEST_SENSOR_TOPIC_STATE: TEST_TEMPERATURE_DATA}
+
+        temp_in_decimal_result = 27.4
+        temp_out_decimal_result = 26.7
+        batter_decimal_result = 100
+
+        # split by new line and remove last element because is empty
+        data = self.sensor.state.split("\n")[:-1]
+
+        self.assertEqual(len(data), 5)
+
+        battery = itemgetter(*TEMP_SENSOR_DATA[BATTERY])(data)
+        temp_in = itemgetter(*TEMP_SENSOR_DATA[TEMP_IN])(data)
+        temp_out = itemgetter(*TEMP_SENSOR_DATA[TEMP_OUT])(data)
+
+        self.assertEqual(battery, data[0])
+        self.assertEqual("".join(temp_in), f"{data[2]}{data[1]}")
+        self.assertEqual("".join(temp_out), f"{data[4]}{data[3]}")
+
+        temp_in_joined = "".join(temp_in)
+        temp_out_joined = "".join(temp_out)
+
+        temp_in_hex = f"0x{temp_in_joined}"
+        temp_out_hex = f"0x{temp_out_joined}"
+        battery_hex = f"0x{battery}"
+
+        temp_in_dec = int(temp_in_hex, 16) / 100
+        temp_out_dec = int(temp_out_hex, 16) / 100
+        battery_dec = 100 if int(battery_hex, 16) == 0 else 0
+
+        self.assertEqual(temp_in_dec, temp_in_decimal_result)
+        self.assertEqual(temp_out_dec, temp_out_decimal_result)
+        self.assertEqual(battery_dec, batter_decimal_result)

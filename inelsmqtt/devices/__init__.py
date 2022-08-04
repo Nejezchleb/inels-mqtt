@@ -157,6 +157,9 @@ class Device(object):
     @property
     def state(self) -> Any:
         """State of the device."""
+        if self.__state is None:
+            self.get_value()
+
         return self.__state
 
     def get_value(self) -> DeviceValue:
@@ -167,7 +170,9 @@ class Device(object):
         """
         val = self.__mqtt.messages.get(self.state_topic)
         dev_value = DeviceValue(
-            self.__device_type, inels_value=(val.decode() if val is not None else None)
+            self.__device_type,
+            self.__inels_type,
+            inels_value=(val.decode() if val is not None else None),
         )
 
         self.__state = dev_value.ha_value
@@ -183,7 +188,7 @@ class Device(object):
         Returns:
             true/false if publishing is successfull or not
         """
-        dev = DeviceValue(self.__device_type, ha_value=value)
+        dev = DeviceValue(self.__device_type, self.__inels_type, ha_value=value)
 
         self.__state = dev.ha_value
 
@@ -202,7 +207,7 @@ class Device(object):
         Returns:
             true/false if publishing is successfull or not
         """
-        dev = DeviceValue(self.__device_type, inels_value=value)
+        dev = DeviceValue(self.__device_type, self.__inels_type, inels_value=value)
 
         self.__state = dev.ha_value
 

@@ -23,6 +23,12 @@ INELS_DEVICE_TYPE_DICT = {
     "10": TEMPERATURE,
 }
 
+BATTERY = "battery"
+TEMP_IN = "temp_in"
+TEMP_OUT = "temp_out"
+
+TEMP_SENSOR_DATA = {BATTERY: [0], TEMP_IN: [2, 1], TEMP_OUT: [4, 3]}
+
 DISCOVERY_TIMEOUT_IN_SEC = 5
 
 FRAGMENT_DOMAIN = "fragment_domain"

@@ -4,10 +4,11 @@ from typing import Any, Dict
 from inelsmqtt.mqtt_client import GetMessageType
 
 from .const import (
-    DEVICE_TYPE_DICT,
+    SENSOR,
     SWITCH,
     SWITCH_SET,
     SWITCH_STATE,
+    TEMPERATURE,
 )
 
 ConfigType = Dict[str, str]
@@ -18,7 +19,8 @@ class DeviceValue(object):
 
     def __init__(
         self,
-        device_type: DEVICE_TYPE_DICT,
+        device_type: str,
+        inels_type: str,
         inels_value: str = None,
         ha_value: Any = None,
     ) -> None:
@@ -27,6 +29,7 @@ class DeviceValue(object):
         self.__inels_set_value: Any = None
         self.__ha_value = ha_value
         self.__device_type = device_type
+        self.__inels_type = inels_type
 
         if self.__ha_value is None:
             self.__find_ha_value()
@@ -39,6 +42,11 @@ class DeviceValue(object):
         if self.__device_type == SWITCH:
             self.__ha_value = SWITCH_STATE[self.__inels_status_value]
             self.__inels_set_value = SWITCH_SET[self.__ha_value]
+        elif self.__device_type == SENSOR:
+            if self.__inels_type == TEMPERATURE:
+                self.__ha_value = self.__inels_status_value
+            else:
+                self.__ha_value = self.__inels_status_value
 
     def __find_inels_value(self) -> None:
         """Find inels mqtt value for specific device."""

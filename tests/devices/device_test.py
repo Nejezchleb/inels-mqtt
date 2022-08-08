@@ -6,7 +6,6 @@ from operator import itemgetter
 from unittest.mock import Mock, patch, PropertyMock
 from unittest import TestCase
 from inelsmqtt import InelsMqtt
-
 from inelsmqtt.devices import Device, DeviceInfo
 from inelsmqtt.const import (
     BATTERY,
@@ -32,6 +31,10 @@ from inelsmqtt.const import (
 )
 
 from tests.const import (
+    TEST_LIGH_STATE_HA_VALUE,
+    TEST_LIGH_STATE_INELS_VALUE,
+    TEST_LIGHT_DIMMABLE_TOPIC_STATE,
+    TEST_LIGHT_SET_INELS_VALUE,
     TEST_SENSOR_TOPIC_STATE,
     TEST_SWITCH_AVAILABILITY_OFF,
     TEST_SWITCH_AVAILABILITY_ON,
@@ -79,11 +82,13 @@ class DeviceTest(TestCase):
 
         self.device = Device(InelsMqtt(config), TEST_TOPIC_STATE, "Device")
         self.sensor = Device(InelsMqtt(config), TEST_SENSOR_TOPIC_STATE, "Sensor")
+        self.light = Device(InelsMqtt(config), TEST_LIGHT_DIMMABLE_TOPIC_STATE, "Light")
 
     def tearDown(self) -> None:
         """Destroy all instances and stop patches"""
         self.device = None
         self.sensor = None
+        self.light = None
 
     def test_initialize_device(self) -> None:
         """Test initialization of device object"""
@@ -214,3 +219,34 @@ class DeviceTest(TestCase):
         self.assertEqual(temp_in_dec, temp_in_decimal_result)
         self.assertEqual(temp_out_dec, temp_out_decimal_result)
         self.assertEqual(battery_dec, batter_decimal_result)
+
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages", new_callable=PropertyMock)
+    def test_device_dimmable_light_test_values(self, mock_message) -> None:
+        """Test if the light is on."""
+        mock_message.return_value = {
+            TEST_LIGHT_DIMMABLE_TOPIC_STATE: TEST_LIGH_STATE_INELS_VALUE
+        }
+
+        values = self.light.get_value()
+
+        self.assertEqual(self.light.state, TEST_LIGH_STATE_HA_VALUE)
+        self.assertEqual(values.ha_value, TEST_LIGH_STATE_HA_VALUE)
+        self.assertEqual(
+            values.inels_status_value, TEST_LIGH_STATE_INELS_VALUE.decode()
+        )
+        self.assertEqual(values.inels_set_value, TEST_LIGHT_SET_INELS_VALUE)
+
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.publish")
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages", new_callable=PropertyMock)
+    def test_device_set_not_support_dimmable_light_value(
+        self, mock_message, mock_publish
+    ) -> None:
+        """Test result ha and inels value when ha value is not supported in inels."""
+        mock_message.return_value = {
+            TEST_LIGHT_DIMMABLE_TOPIC_STATE: TEST_LIGH_STATE_INELS_VALUE
+        }
+        mock_publish.return_value = True
+
+        self.light.set_ha_value(24)
+
+        self.assertEqual(self.light.state, TEST_LIGH_STATE_HA_VALUE)

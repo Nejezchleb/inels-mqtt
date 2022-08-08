@@ -1,9 +1,15 @@
 """Utility classes."""
+from operator import itemgetter
 from typing import Any, Dict
 
 from inelsmqtt.mqtt_client import GetMessageType
 
 from .const import (
+    ANALOG_REGULATOR_SET_BYTES,
+    DEVICE_TYPE_05_DATA,
+    DEVICE_TYPE_05_HEX_VALUES,
+    DIMMER,
+    LIGHT,
     SENSOR,
     SWITCH,
     SWITCH_SET,
@@ -39,22 +45,56 @@ class DeviceValue(object):
 
     def __find_ha_value(self) -> None:
         """Find and crete device value object."""
-        if self.__device_type == SWITCH:
+        if self.__device_type is SWITCH:
             self.__ha_value = SWITCH_STATE[self.__inels_status_value]
             self.__inels_set_value = SWITCH_SET[self.__ha_value]
-        elif self.__device_type == SENSOR:
-            if self.__inels_type == TEMPERATURE:
+        elif self.__device_type is SENSOR:
+            if self.__inels_type is TEMPERATURE:
                 self.__ha_value = self.__inels_status_value
             else:
                 self.__ha_value = self.__inels_status_value
+        elif self.__device_type is LIGHT:
+            if self.__inels_type is DIMMER:
+                self.__ha_value = DEVICE_TYPE_05_HEX_VALUES[self.__inels_status_value]
+
+                trimmed_data = self.__trim_inels_status_values(
+                    DEVICE_TYPE_05_DATA, DIMMER, " "
+                )
+                self.__inels_set_value = (
+                    f"{ANALOG_REGULATOR_SET_BYTES[DIMMER]} {trimmed_data}"
+                )
+            else:
+                self.__ha_value = self.__inels_status_value
+
+    def __trim_inels_status_values(
+        self, selector: dict[str, Any], fragment: str, jointer: str
+    ) -> str:
+        """Trim inels status from broker into the pure string."""
+        data = self.__inels_status_value.split("\n")[:-1]
+
+        selected = itemgetter(*selector[fragment])(data)
+
+        return jointer.join(selected)
 
     def __find_inels_value(self) -> None:
         """Find inels mqtt value for specific device."""
-        if self.__device_type == SWITCH:
+        if self.__device_type is SWITCH:
             self.__inels_status_value = self.__find_keys_by_value(
                 SWITCH_STATE, self.__ha_value
             )
             self.__inels_set_value = SWITCH_SET.get(self.__ha_value)
+        elif self.__device_type is LIGHT:
+            if self.__inels_type is DIMMER:
+                self.__inels_status_value = self.__find_keys_by_value(
+                    DEVICE_TYPE_05_HEX_VALUES, round(self.__ha_value, -1)
+                )
+                trimmed_data = self.__trim_inels_status_values(
+                    DEVICE_TYPE_05_DATA, DIMMER, " "
+                )
+                self.__inels_set_value = (
+                    f"{ANALOG_REGULATOR_SET_BYTES[DIMMER]} {trimmed_data}"
+                )
+                self.__ha_value = DEVICE_TYPE_05_HEX_VALUES[self.__inels_status_value]
 
     def __find_keys_by_value(self, array: dict, value) -> Any:
         """Return key from dict by value

@@ -13,19 +13,47 @@ LIGHT = "light"
 DEVICE_TYPE_DICT = {
     "02": SWITCH,
     "10": SENSOR,
+    "05": LIGHT,
 }
 
 PLUG = "plug"
 TEMPERATURE = "temperature"
+DIMMER = "dimmer"
 
-INELS_DEVICE_TYPE_DICT = {
-    "02": PLUG,
-    "10": TEMPERATURE,
-}
+INELS_DEVICE_TYPE_DICT = {"02": PLUG, "10": TEMPERATURE, "05": DIMMER}
 
 BATTERY = "battery"
 TEMP_IN = "temp_in"
 TEMP_OUT = "temp_out"
+DIMMER = "dimmer"
+RAMP_UP = "ramp_up"  # náběh
+TIME_RAMP_UP = "time_ramp"  # časový náběh
+TIME_RAMP_DOWN = "time_ramp_down"  # časový doběh
+TEST_COMMUNICATION = "test_communication"
+
+ANALOG_REGULATOR_SET_BYTES = {
+    DIMMER: "01",
+    RAMP_UP: "02",
+    TIME_RAMP_UP: "05",
+    TIME_RAMP_DOWN: "06",
+    TEST_COMMUNICATION: "07",
+}
+
+DEVICE_TYPE_05_HEX_VALUES = {
+    "00\n00\n": 0,
+    "D1\n1F\n": 10,
+    "C9\n4F\n": 20,
+    "C1\n7F\n": 30,
+    "B9\nAF\n": 40,
+    "B1\nDF\n": 50,
+    "AA\n0F\n": 60,
+    "A2\n3F\n": 70,
+    "9A\n6F\n": 80,
+    "92\n9F\n": 90,
+    "8A\nCF\n": 100,
+}
+
+DEVICE_TYPE_05_DATA = {DIMMER: [0, 1]}
 
 TEMP_SENSOR_DATA = {BATTERY: [0], TEMP_IN: [2, 1], TEMP_OUT: [4, 3]}
 

@@ -25,7 +25,6 @@ INELS_DEVICE_TYPE_DICT = {"02": PLUG, "10": TEMPERATURE, "05": DIMMER}
 BATTERY = "battery"
 TEMP_IN = "temp_in"
 TEMP_OUT = "temp_out"
-DIMMER = "dimmer"
 RAMP_UP = "ramp_up"  # náběh
 TIME_RAMP_UP = "time_ramp"  # časový náběh
 TIME_RAMP_DOWN = "time_ramp_down"  # časový doběh
@@ -40,7 +39,7 @@ ANALOG_REGULATOR_SET_BYTES = {
 }
 
 DEVICE_TYPE_05_HEX_VALUES = {
-    "00\n00\n": 0,
+    "D8\nEF\n": 0,
     "D1\n1F\n": 10,
     "C9\n4F\n": 20,
     "C1\n7F\n": 30,

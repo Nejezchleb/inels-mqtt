@@ -142,7 +142,9 @@ class DeviceValue(object):
             return keys[index]
         except ValueError as err:
             index = vals.index(last_value)
-            _LOGGER.error("Value %s is not in list of %s. Stack %s", value, array, err)
+            _LOGGER.warning(
+                "Value %s is not in list of %s. Stack %s", value, array, err
+            )
 
         return keys[index]
 

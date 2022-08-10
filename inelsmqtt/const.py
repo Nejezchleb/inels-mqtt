@@ -8,19 +8,27 @@ NAME = "inels-mqtt"
 SWITCH = "switch"
 SENSOR = "sensor"
 LIGHT = "light"
+COVER = "cover"
 
 # device types
 DEVICE_TYPE_DICT = {
     "02": SWITCH,
-    "10": SENSOR,
+    "03": COVER,
     "05": LIGHT,
+    "10": SENSOR,
 }
 
 PLUG = "plug"
 TEMPERATURE = "temperature"
 DIMMER = "dimmer"
+SHUTTER_RFJA_12 = "shutter_rfja_12"
 
-INELS_DEVICE_TYPE_DICT = {"02": PLUG, "10": TEMPERATURE, "05": DIMMER}
+INELS_DEVICE_TYPE_DICT = {
+    "02": PLUG,
+    "10": TEMPERATURE,
+    "05": DIMMER,
+    "03": SHUTTER_RFJA_12,
+}
 
 BATTERY = "battery"
 TEMP_IN = "temp_in"
@@ -29,6 +37,43 @@ RAMP_UP = "ramp_up"  # náběh
 TIME_RAMP_UP = "time_ramp"  # časový náběh
 TIME_RAMP_DOWN = "time_ramp_down"  # časový doběh
 TEST_COMMUNICATION = "test_communication"
+PULL_DOWN = "pull_down"
+PULL_UP = "pull_up"
+PUSH_BUTTON_DOWN = "push_button_down"
+PUSH_BUTTON_UP = "push_button_up"
+RELEASE_BUTTON_DOWN = "release_button_down"
+RELEASE_BUTTON_UP = "relese_button_up"
+SET_TIME_UP = "set_time_up"
+SET_TIME_DOWN = "set_time_down"
+STOP = "stop"
+
+STATE_OPEN = "open"
+STATE_CLOSED = "closed"
+
+COVER_SET_BYTES = {
+    PULL_DOWN: "01",
+    PULL_UP: "02",
+    PUSH_BUTTON_DOWN: "03",
+    RELEASE_BUTTON_DOWN: "04",
+    PUSH_BUTTON_UP: "05",
+    RELEASE_BUTTON_UP: "06",
+    SET_TIME_UP: "07",
+    SET_TIME_DOWN: "08",
+    TEST_COMMUNICATION: "09",
+}
+
+COVER_TIME_SET_CONSTANT = 0.06577
+
+SHUTTER_STATES = {
+    "03\n01\n": STATE_OPEN,
+    "03\n00\n": STATE_CLOSED,
+}
+
+SHUTTER_SET = {
+    STATE_OPEN: "02 00 00",
+    STATE_CLOSED: "01 00 00",
+    STOP: "04 00 00",
+}
 
 ANALOG_REGULATOR_SET_BYTES = {
     DIMMER: "01",
@@ -55,6 +100,8 @@ DEVICE_TYPE_05_HEX_VALUES = {
 DEVICE_TYPE_05_DATA = {DIMMER: [0, 1]}
 
 TEMP_SENSOR_DATA = {BATTERY: [0], TEMP_IN: [2, 1], TEMP_OUT: [4, 3]}
+
+SHUTTER_TYPE_03_DATA = {SHUTTER_RFJA_12: [1]}
 
 DISCOVERY_TIMEOUT_IN_SEC = 5
 
@@ -94,14 +141,6 @@ SWITCH_SET = {
 SWITCH_STATE = {
     SWITCH_ON_STATE: True,
     SWITCH_OFF_STATE: False,
-}
-
-LIGHT_ON = "Aadfadfadf"
-LIGHT_OFF = "adfwerafad"
-
-DEVICE_PLATFORMS = {
-    SWITCH: {SWITCH_ON_STATE: True, SWITCH_OFF_STATE: False},
-    LIGHT: {LIGHT_ON: True, LIGHT_OFF: False},
 }
 
 MQTT_TRANSPORTS = {"tcp", "websockets"}

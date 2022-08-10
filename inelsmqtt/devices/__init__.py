@@ -64,6 +64,7 @@ class Device(object):
         self.__title = title if title is not None else self.__unique_id
         self.__domain = fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]
         self.__state: Any = None
+        self.__values: DeviceValue = None
 
         # subscribe availability
         self.__mqtt.subscribe(self.__connected_topic, 0, None, None)
@@ -162,6 +163,11 @@ class Device(object):
 
         return self.__state
 
+    @property
+    def values(self) -> DeviceValue:
+        """Get values of inels and ha type."""
+        return self.__values
+
     def get_value(self) -> DeviceValue:
         """Get value from inels
 
@@ -176,6 +182,7 @@ class Device(object):
         )
 
         self.__state = dev_value.ha_value
+        self.__values = dev_value
 
         return dev_value
 
@@ -188,32 +195,19 @@ class Device(object):
         Returns:
             true/false if publishing is successfull or not
         """
-        dev = DeviceValue(self.__device_type, self.__inels_type, ha_value=value)
+        dev = DeviceValue(
+            self.__device_type,
+            self.__inels_type,
+            ha_value=value,
+            last_value=self.__state,
+        )
 
         self.__state = dev.ha_value
+        self.__values = dev
 
         ret = False
         if self.__set_topic is not None:
             ret = self.__mqtt.publish(self.__set_topic, dev.inels_set_value)
-
-        return ret
-
-    def set_inels_value(self, value: str) -> bool:
-        """Set the value into the broker
-
-        Args:
-            payload (str): Data inserted into the set topic
-
-        Returns:
-            true/false if publishing is successfull or not
-        """
-        dev = DeviceValue(self.__device_type, self.__inels_type, inels_value=value)
-
-        self.__state = dev.ha_value
-
-        ret = False
-        if self.__set_topic is not None:
-            self.__mqtt.publish(self.__set_topic, dev.inels_set_value)
 
         return ret
 

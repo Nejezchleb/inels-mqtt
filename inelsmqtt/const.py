@@ -45,6 +45,8 @@ RELEASE_BUTTON_DOWN = "release_button_down"
 RELEASE_BUTTON_UP = "relese_button_up"
 SET_TIME_UP = "set_time_up"
 SET_TIME_DOWN = "set_time_down"
+STOP_DOWN = "stop_down"
+STOP_UP = "stop_up"
 STOP = "stop"
 
 STATE_OPEN = "open"
@@ -64,6 +66,8 @@ COVER_SET_BYTES = {
 
 COVER_TIME_SET_CONSTANT = 0.06577
 
+SHUTTER_STATE_LIST = [STATE_CLOSED, STATE_CLOSED]
+
 SHUTTER_STATES = {
     "03\n01\n": STATE_OPEN,
     "03\n00\n": STATE_CLOSED,
@@ -72,7 +76,8 @@ SHUTTER_STATES = {
 SHUTTER_SET = {
     STATE_OPEN: "02 00 00",
     STATE_CLOSED: "01 00 00",
-    STOP: "04 00 00",
+    STOP_DOWN: "03 00 00",
+    STOP_UP: "05 00 00",
 }
 
 ANALOG_REGULATOR_SET_BYTES = {

@@ -14,7 +14,7 @@ from inelsmqtt.const import (
     SHUTTER_RFJA_12,
     STATE_CLOSED,
     STATE_OPEN,
-    STOP,
+    STOP_UP,
     TEMP_IN,
     TEMP_OUT,
     DEVICE_TYPE_DICT,
@@ -41,7 +41,7 @@ from tests.const import (
     TEST_COVER_RFJA_12_INELS_STATE_OPEN,
     TEST_COVER_RFJA_12_SET_CLOSE,
     TEST_COVER_RFJA_12_SET_OPEN,
-    TEST_COVER_RFJA_12_SET_STOP,
+    TEST_COVER_RFJA_12_SET_STOP_UP,
     TEST_COVER_RFJA_12_TOPIC_CONNECTED,
     TEST_COVER_RFJA_12_TOPIC_STATE,
     TEST_LIGH_STATE_HA_VALUE,
@@ -323,12 +323,12 @@ class DeviceTest(TestCase):
         self.assertEqual(self.shutter.state, STATE_OPEN)
         self.assertNotEqual(self.shutter.state, STATE_CLOSED)
 
-        self.shutter.set_ha_value(STOP)
+        self.shutter.set_ha_value(STOP_UP)
         self.assertEqual(
-            self.shutter.values.inels_set_value, TEST_COVER_RFJA_12_SET_STOP
+            self.shutter.values.inels_set_value, TEST_COVER_RFJA_12_SET_STOP_UP
         )
         self.assertEqual(
             self.shutter.values.inels_status_value,
             TEST_COVER_RFJA_12_INELS_STATE_OPEN.decode(),
         )
-        self.assertEqual(self.shutter.state, STOP)
+        self.assertEqual(self.shutter.state, STATE_OPEN)

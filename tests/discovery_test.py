@@ -22,7 +22,7 @@ from tests.const import (
     TEST_INELS_MQTT_NAMESPACE,
     TEST_PASSWORD,
     TEST_PORT,
-    TEST_TOPIC_STATE,
+    TEST_SWITCH_TOPIC_STATE,
     TEST_USER_NAME,
 )
 
@@ -76,7 +76,7 @@ class DiscoveryTest(TestCase):
 
     @patch(
         f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.discovery_all",
-        return_value={TEST_TOPIC_STATE: "data"},
+        return_value={TEST_SWITCH_TOPIC_STATE: "data"},
     )
     def test_discovery(self, mock_discovery_all) -> None:
         """Test get list of devices"""

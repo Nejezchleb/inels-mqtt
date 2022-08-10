@@ -6,9 +6,15 @@ from operator import itemgetter
 from unittest.mock import Mock, patch, PropertyMock
 from unittest import TestCase
 from inelsmqtt import InelsMqtt
+from inelsmqtt.util import DeviceValue
 from inelsmqtt.devices import Device, DeviceInfo
 from inelsmqtt.const import (
     BATTERY,
+    COVER,
+    SHUTTER_RFJA_12,
+    STATE_CLOSED,
+    STATE_OPEN,
+    STOP,
     TEMP_IN,
     TEMP_OUT,
     DEVICE_TYPE_DICT,
@@ -31,16 +37,23 @@ from inelsmqtt.const import (
 )
 
 from tests.const import (
+    TEST_COVER_RFJA_12_INELS_STATE_CLOSED,
+    TEST_COVER_RFJA_12_INELS_STATE_OPEN,
+    TEST_COVER_RFJA_12_SET_CLOSE,
+    TEST_COVER_RFJA_12_SET_OPEN,
+    TEST_COVER_RFJA_12_SET_STOP,
+    TEST_COVER_RFJA_12_TOPIC_CONNECTED,
+    TEST_COVER_RFJA_12_TOPIC_STATE,
     TEST_LIGH_STATE_HA_VALUE,
     TEST_LIGH_STATE_INELS_VALUE,
     TEST_LIGHT_DIMMABLE_TOPIC_STATE,
     TEST_LIGHT_SET_INELS_VALUE,
     TEST_SENSOR_TOPIC_STATE,
-    TEST_SWITCH_AVAILABILITY_OFF,
-    TEST_SWITCH_AVAILABILITY_ON,
+    TEST_AVAILABILITY_OFF,
+    TEST_AVAILABILITY_ON,
     TEST_TEMPERATURE_DATA,
-    TEST_TOPIC_CONNECTED,
-    TEST_TOPIC_STATE,
+    TEST_SWITICH_TOPIC_CONNECTED,
+    TEST_SWITCH_TOPIC_STATE,
     TEST_INELS_MQTT_NAMESPACE,
     TEST_INELS_MQTT_CLASS_NAMESPACE,
     TEST_HOST,
@@ -80,24 +93,28 @@ class DeviceTest(TestCase):
             MQTT_PROTOCOL: PROTO_5,
         }
 
-        self.device = Device(InelsMqtt(config), TEST_TOPIC_STATE, "Device")
+        self.device = Device(InelsMqtt(config), TEST_SWITCH_TOPIC_STATE, "Device")
         self.sensor = Device(InelsMqtt(config), TEST_SENSOR_TOPIC_STATE, "Sensor")
         self.light = Device(InelsMqtt(config), TEST_LIGHT_DIMMABLE_TOPIC_STATE, "Light")
+        self.shutter = Device(
+            InelsMqtt(config), TEST_COVER_RFJA_12_TOPIC_STATE, "Shutter"
+        )
 
     def tearDown(self) -> None:
         """Destroy all instances and stop patches"""
         self.device = None
         self.sensor = None
         self.light = None
+        self.shutter = None
 
     def test_initialize_device(self) -> None:
         """Test initialization of device object"""
         title = "Device 1"
 
         # device without title
-        dev_no_title = Device(Mock(), TEST_TOPIC_STATE)
+        dev_no_title = Device(Mock(), TEST_SWITCH_TOPIC_STATE)
         # device with title
-        dev_with_title = Device(Mock(), TEST_TOPIC_STATE, title)
+        dev_with_title = Device(Mock(), TEST_SWITCH_TOPIC_STATE, title)
 
         self.assertIsNotNone(dev_no_title)
         self.assertIsNotNone(dev_with_title)
@@ -108,7 +125,7 @@ class DeviceTest(TestCase):
         self.assertEqual(dev_no_title.title, dev_no_title.unique_id)
         self.assertEqual(dev_with_title.title, title)
 
-        fragments = TEST_TOPIC_STATE.split("/")
+        fragments = TEST_SWITCH_TOPIC_STATE.split("/")
 
         set_topic = f"{fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/set/{fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"  # noqa: 501
 
@@ -133,7 +150,7 @@ class DeviceTest(TestCase):
         self.assertTrue(self.device.set_ha_value(True))
 
         # SWITCH_ON needs to be encoded becasue broker returns value as a byte
-        mock_messages.return_value = {TEST_TOPIC_STATE: SWITCH_ON_STATE.encode()}
+        mock_messages.return_value = {TEST_SWITCH_TOPIC_STATE: SWITCH_ON_STATE.encode()}
         mock_publish.return_value = True
 
         rt_val = self.device.get_value()
@@ -143,7 +160,9 @@ class DeviceTest(TestCase):
 
         self.assertTrue(self.device.set_ha_value(False))
 
-        mock_messages.return_value = {TEST_TOPIC_STATE: SWITCH_OFF_STATE.encode()}
+        mock_messages.return_value = {
+            TEST_SWITCH_TOPIC_STATE: SWITCH_OFF_STATE.encode()
+        }
         mock_publish.return_value = False
 
         rt_val = self.device.get_value()
@@ -158,7 +177,7 @@ class DeviceTest(TestCase):
     def test_info(self) -> None:
         """Test of the info."""
         info = self.device.info()
-        fragments = TEST_TOPIC_STATE.split("/")
+        fragments = TEST_SWITCH_TOPIC_STATE.split("/")
 
         self.assertIsInstance(info, DeviceInfo)
         self.assertEqual(info.manufacturer, fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]])
@@ -167,7 +186,9 @@ class DeviceTest(TestCase):
     def test_is_available(self, mock_messages) -> None:
         """Test of the device availability."""
 
-        mock_messages.return_value = {TEST_TOPIC_CONNECTED: TEST_SWITCH_AVAILABILITY_ON}
+        mock_messages.return_value = {
+            TEST_SWITICH_TOPIC_CONNECTED: TEST_AVAILABILITY_ON
+        }
         is_avilable = self.device.is_available
 
         self.assertTrue(is_avilable)
@@ -177,7 +198,7 @@ class DeviceTest(TestCase):
         """Test of the dvice availability wit result false."""
 
         mock_messages.return_value = {
-            TEST_TOPIC_CONNECTED: TEST_SWITCH_AVAILABILITY_OFF
+            TEST_SWITICH_TOPIC_CONNECTED: TEST_AVAILABILITY_OFF
         }
         is_avilable = self.device.is_available
 
@@ -250,3 +271,64 @@ class DeviceTest(TestCase):
         self.light.set_ha_value(24)
 
         self.assertEqual(self.light.state, TEST_LIGH_STATE_HA_VALUE)
+
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages", new_callable=PropertyMock)
+    def test_device_support_cover_initialized(self, mock_message) -> None:
+        """Test covers all props. initialization."""
+        mock_message.return_value = {
+            TEST_COVER_RFJA_12_TOPIC_STATE: TEST_COVER_RFJA_12_INELS_STATE_OPEN,
+            TEST_COVER_RFJA_12_TOPIC_CONNECTED: TEST_AVAILABILITY_ON,
+        }
+
+        self.assertTrue(self.shutter.is_available)
+        self.assertEqual(self.shutter.device_type, COVER)
+        self.assertEqual(self.shutter.inels_type, SHUTTER_RFJA_12)
+        self.assertEqual(self.shutter.state, STATE_OPEN)
+
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.publish")
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages", new_callable=PropertyMock)
+    def test_device_support_cover_open_stop_and_close(
+        self, mock_message, mock_publish
+    ) -> None:
+        """Test open the shutter."""
+        mock_message.return_value = {
+            TEST_COVER_RFJA_12_TOPIC_STATE: TEST_COVER_RFJA_12_INELS_STATE_CLOSED,
+        }
+        mock_publish.return_value = True
+
+        self.assertNotEqual(self.shutter.state, STATE_OPEN)
+        self.assertEqual(self.shutter.state, STATE_CLOSED)
+
+        values: DeviceValue = self.shutter.get_value()
+
+        self.assertIsInstance(values, DeviceValue)
+        self.assertEqual(
+            values.inels_status_value, TEST_COVER_RFJA_12_INELS_STATE_CLOSED.decode()
+        )
+        self.assertEqual(values.inels_set_value, TEST_COVER_RFJA_12_SET_CLOSE)
+
+        self.shutter.set_ha_value(STATE_OPEN)
+
+        mock_message.return_value = {
+            TEST_COVER_RFJA_12_TOPIC_STATE: TEST_COVER_RFJA_12_INELS_STATE_OPEN,
+        }
+
+        values: DeviceInfo = self.shutter.get_value()
+
+        self.assertIsInstance(values, DeviceValue)
+        self.assertEqual(
+            values.inels_status_value, TEST_COVER_RFJA_12_INELS_STATE_OPEN.decode()
+        )
+        self.assertEqual(values.inels_set_value, TEST_COVER_RFJA_12_SET_OPEN)
+        self.assertEqual(self.shutter.state, STATE_OPEN)
+        self.assertNotEqual(self.shutter.state, STATE_CLOSED)
+
+        self.shutter.set_ha_value(STOP)
+        self.assertEqual(
+            self.shutter.values.inels_set_value, TEST_COVER_RFJA_12_SET_STOP
+        )
+        self.assertEqual(
+            self.shutter.values.inels_status_value,
+            TEST_COVER_RFJA_12_INELS_STATE_OPEN.decode(),
+        )
+        self.assertEqual(self.shutter.state, STOP)

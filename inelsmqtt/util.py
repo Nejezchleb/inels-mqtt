@@ -16,6 +16,7 @@ from .const import (
     SENSOR,
     SHUTTER_RFJA_12,
     SHUTTER_SET,
+    SHUTTER_STATE_LIST,
     SHUTTER_STATES,
     SWITCH,
     SWITCH_SET,
@@ -116,6 +117,14 @@ class DeviceValue(object):
                     SHUTTER_STATES, self.__ha_value, self.__last_value
                 )
                 self.__inels_set_value = SHUTTER_SET.get(self.__ha_value)
+                # speical behavior. We need to find right HA state for the cover
+                prev_val = SHUTTER_STATES.get(self.__inels_status_value)
+                ha_val = (
+                    self.__ha_value
+                    if self.__ha_value in SHUTTER_STATE_LIST
+                    else prev_val
+                )
+                self.__ha_value = ha_val
 
     def __find_keys_by_value(self, array: dict, value, last_value) -> Any:
         """Return key from dict by value

@@ -164,4 +164,4 @@ PROTO_5 = 5
 
 VERSION = "0.0.1"
 
-MANUFACTURER: Final = "ElkoEP s.r.o."
+MANUFACTURER: Final = "ELKO EP s.r.o"

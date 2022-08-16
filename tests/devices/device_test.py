@@ -179,7 +179,6 @@ class DeviceTest(TestCase):
     def test_switch_info(self) -> None:
         """Test of the info."""
         info = self.switch.info()
-        fragments = TEST_SWITCH_TOPIC_STATE.split("/")
 
         self.assertIsInstance(info, DeviceInfo)
         self.assertEqual(info.manufacturer, MANUFACTURER)

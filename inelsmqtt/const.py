@@ -162,6 +162,6 @@ PROTO_31 = "3.1"
 PROTO_311 = "3.1.1"
 PROTO_5 = 5
 
-VERSION = "0.0.1"
+VERSION = "0.1.0"
 
 MANUFACTURER: Final = "ELKO EP s.r.o"

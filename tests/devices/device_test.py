@@ -11,7 +11,7 @@ from inelsmqtt.devices import Device, DeviceInfo
 from inelsmqtt.const import (
     BATTERY,
     COVER,
-    SHUTTER_RFJA_12,
+    RFJA_12,
     STATE_CLOSED,
     STATE_OPEN,
     STOP_UP,
@@ -93,7 +93,7 @@ class DeviceTest(TestCase):
             MQTT_PROTOCOL: PROTO_5,
         }
 
-        self.device = Device(InelsMqtt(config), TEST_SWITCH_TOPIC_STATE, "Device")
+        self.switch = Device(InelsMqtt(config), TEST_SWITCH_TOPIC_STATE, "Switch")
         self.sensor = Device(InelsMqtt(config), TEST_SENSOR_TOPIC_STATE, "Sensor")
         self.light = Device(InelsMqtt(config), TEST_LIGHT_DIMMABLE_TOPIC_STATE, "Light")
         self.shutter = Device(
@@ -102,7 +102,7 @@ class DeviceTest(TestCase):
 
     def tearDown(self) -> None:
         """Destroy all instances and stop patches"""
-        self.device = None
+        self.switch = None
         self.sensor = None
         self.light = None
         self.shutter = None
@@ -147,40 +147,41 @@ class DeviceTest(TestCase):
     @patch("inelsmqtt.InelsMqtt.messages", new_callable=PropertyMock)
     def test_set_payload(self, mock_messages, mock_publish) -> None:
         """Test set payload of the device."""
-        self.assertTrue(self.device.set_ha_value(True))
+        self.assertTrue(self.switch.set_ha_value(True))
 
         # SWITCH_ON needs to be encoded becasue broker returns value as a byte
         mock_messages.return_value = {TEST_SWITCH_TOPIC_STATE: SWITCH_ON_STATE.encode()}
         mock_publish.return_value = True
 
-        rt_val = self.device.get_value()
+        rt_val = self.switch.get_value()
         self.assertTrue(rt_val.ha_value)
         self.assertEqual(rt_val.inels_status_value, SWITCH_ON_STATE)
         self.assertEqual(rt_val.inels_set_value, SWITCH_ON_SET)
 
-        self.assertTrue(self.device.set_ha_value(False))
+        self.assertTrue(self.switch.set_ha_value(False))
 
         mock_messages.return_value = {
             TEST_SWITCH_TOPIC_STATE: SWITCH_OFF_STATE.encode()
         }
         mock_publish.return_value = False
 
-        rt_val = self.device.get_value()
+        rt_val = self.switch.get_value()
         self.assertFalse(rt_val.ha_value)
         self.assertEqual(rt_val.inels_status_value, SWITCH_OFF_STATE)
         self.assertEqual(rt_val.inels_set_value, SWITCH_OFF_SET)
 
     def test_info_serialized(self) -> None:
         """Test of the serialized info."""
-        self.assertIsInstance(self.device.info_serialized(), str)
+        self.assertIsInstance(self.switch.info_serialized(), str)
 
-    def test_info(self) -> None:
+    def test_switch_info(self) -> None:
         """Test of the info."""
-        info = self.device.info()
+        info = self.switch.info()
         fragments = TEST_SWITCH_TOPIC_STATE.split("/")
 
         self.assertIsInstance(info, DeviceInfo)
         self.assertEqual(info.manufacturer, fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]])
+        self.assertEqual(info.model_number, self.switch.inels_type)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages", new_callable=PropertyMock)
     def test_is_available(self, mock_messages) -> None:
@@ -189,7 +190,7 @@ class DeviceTest(TestCase):
         mock_messages.return_value = {
             TEST_SWITICH_TOPIC_CONNECTED: TEST_AVAILABILITY_ON
         }
-        is_avilable = self.device.is_available
+        is_avilable = self.switch.is_available
 
         self.assertTrue(is_avilable)
 
@@ -200,7 +201,7 @@ class DeviceTest(TestCase):
         mock_messages.return_value = {
             TEST_SWITICH_TOPIC_CONNECTED: TEST_AVAILABILITY_OFF
         }
-        is_avilable = self.device.is_available
+        is_avilable = self.switch.is_available
 
         self.assertFalse(is_avilable)
 
@@ -282,7 +283,7 @@ class DeviceTest(TestCase):
 
         self.assertTrue(self.shutter.is_available)
         self.assertEqual(self.shutter.device_type, COVER)
-        self.assertEqual(self.shutter.inels_type, SHUTTER_RFJA_12)
+        self.assertEqual(self.shutter.inels_type, RFJA_12)
         self.assertEqual(self.shutter.state, STATE_OPEN)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.publish")
@@ -313,7 +314,7 @@ class DeviceTest(TestCase):
             TEST_COVER_RFJA_12_TOPIC_STATE: TEST_COVER_RFJA_12_INELS_STATE_OPEN,
         }
 
-        values: DeviceInfo = self.shutter.get_value()
+        values: DeviceValue = self.shutter.get_value()
 
         self.assertIsInstance(values, DeviceValue)
         self.assertEqual(

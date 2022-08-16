@@ -253,12 +253,7 @@ class DeviceInfo(object):
     @property
     def model_number(self) -> str:
         """Modle of the device."""
-        return "TODO: model"
-
-    @property
-    def sw_version(self) -> str:
-        """Sw version of the device."""
-        return "TODO: Sw version"
+        return self.__device.inels_type
 
     @property
     def serial_number(self) -> str:

@@ -11,17 +11,17 @@ from .const import (
     COVER,
     DEVICE_TYPE_05_DATA,
     DEVICE_TYPE_05_HEX_VALUES,
-    DIMMER,
+    RFDAC_71B,
     LIGHT,
     SENSOR,
-    SHUTTER_RFJA_12,
+    RFJA_12,
     SHUTTER_SET,
     SHUTTER_STATE_LIST,
     SHUTTER_STATES,
     SWITCH,
     SWITCH_SET,
     SWITCH_STATE,
-    TEMPERATURE,
+    RFTI_10B,
 )
 
 ConfigType = Dict[str, str]
@@ -59,19 +59,19 @@ class DeviceValue(object):
             self.__ha_value = SWITCH_STATE[self.__inels_status_value]
             self.__inels_set_value = SWITCH_SET[self.__ha_value]
         elif self.__device_type is SENSOR:
-            if self.__inels_type is TEMPERATURE:
+            if self.__inels_type is RFTI_10B:
                 self.__ha_value = self.__inels_status_value
             else:
                 self.__ha_value = self.__inels_status_value
         elif self.__device_type is LIGHT:
-            if self.__inels_type is DIMMER:
+            if self.__inels_type is RFDAC_71B:
                 self.__ha_value = DEVICE_TYPE_05_HEX_VALUES[self.__inels_status_value]
 
                 trimmed_data = self.__trim_inels_status_values(
-                    DEVICE_TYPE_05_DATA, DIMMER, " "
+                    DEVICE_TYPE_05_DATA, RFDAC_71B, " "
                 )
                 self.__inels_set_value = (
-                    f"{ANALOG_REGULATOR_SET_BYTES[DIMMER]} {trimmed_data}"
+                    f"{ANALOG_REGULATOR_SET_BYTES[RFDAC_71B]} {trimmed_data}"
                 )
             else:
                 self.__ha_value = self.__inels_status_value
@@ -98,21 +98,21 @@ class DeviceValue(object):
             )
             self.__inels_set_value = SWITCH_SET.get(self.__ha_value)
         elif self.__device_type is LIGHT:
-            if self.__inels_type is DIMMER:
+            if self.__inels_type is RFDAC_71B:
                 self.__inels_status_value = self.__find_keys_by_value(
                     DEVICE_TYPE_05_HEX_VALUES,
                     round(self.__ha_value, -1),
                     self.__last_value,
                 )
                 trimmed_data = self.__trim_inels_status_values(
-                    DEVICE_TYPE_05_DATA, DIMMER, " "
+                    DEVICE_TYPE_05_DATA, RFDAC_71B, " "
                 )
                 self.__inels_set_value = (
-                    f"{ANALOG_REGULATOR_SET_BYTES[DIMMER]} {trimmed_data}"
+                    f"{ANALOG_REGULATOR_SET_BYTES[RFDAC_71B]} {trimmed_data}"
                 )
                 self.__ha_value = DEVICE_TYPE_05_HEX_VALUES[self.__inels_status_value]
         elif self.__device_type is COVER:
-            if self.__inels_type is SHUTTER_RFJA_12:
+            if self.__inels_type is RFJA_12:
                 self.__inels_status_value = self.__find_keys_by_value(
                     SHUTTER_STATES, self.__ha_value, self.__last_value
                 )

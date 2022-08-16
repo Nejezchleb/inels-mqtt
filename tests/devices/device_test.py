@@ -11,6 +11,7 @@ from inelsmqtt.devices import Device, DeviceInfo
 from inelsmqtt.const import (
     BATTERY,
     COVER,
+    MANUFACTURER,
     RFJA_12,
     STATE_CLOSED,
     STATE_OPEN,
@@ -34,6 +35,7 @@ from inelsmqtt.const import (
     MQTT_PASSWORD,
     MQTT_PROTOCOL,
     PROTO_5,
+    VERSION,
 )
 
 from tests.const import (
@@ -180,8 +182,9 @@ class DeviceTest(TestCase):
         fragments = TEST_SWITCH_TOPIC_STATE.split("/")
 
         self.assertIsInstance(info, DeviceInfo)
-        self.assertEqual(info.manufacturer, fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]])
+        self.assertEqual(info.manufacturer, MANUFACTURER)
         self.assertEqual(info.model_number, self.switch.inels_type)
+        self.assertEqual(info.sw_version, VERSION)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages", new_callable=PropertyMock)
     def test_is_available(self, mock_messages) -> None:

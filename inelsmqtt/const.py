@@ -163,3 +163,5 @@ PROTO_311 = "3.1.1"
 PROTO_5 = 5
 
 VERSION = "0.0.1"
+
+MANUFACTURER: Final = "ElkoEP s.r.o."

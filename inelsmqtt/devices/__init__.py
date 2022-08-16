@@ -10,12 +10,14 @@ from inelsmqtt.const import (
     DEVICE_TYPE_DICT,
     FRAGMENT_DOMAIN,
     INELS_DEVICE_TYPE_DICT,
+    MANUFACTURER,
     SENSOR,
     TOPIC_FRAGMENTS,
     FRAGMENT_DEVICE_TYPE,
     FRAGMENT_SERIAL_NUMBER,
     FRAGMENT_UNIQUE_ID,
     DEVICE_CONNCTED,
+    VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -248,7 +250,12 @@ class DeviceInfo(object):
     @property
     def manufacturer(self) -> str:
         """Manufacturer property."""
-        return self.__device.domain
+        return MANUFACTURER
+
+    @property
+    def sw_version(self) -> str:
+        """Version of software."""
+        return VERSION
 
     @property
     def model_number(self) -> str:

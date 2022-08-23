@@ -159,6 +159,6 @@ class InelsMqttTest(TestCase):
         # fill up __message prop
         self.mqtt._InelsMqtt__messages = dictionary  # pylint: disable=protected-access
 
-        self.assertIsNotNone(self.mqtt.messages)
-        self.assertEqual(len(self.mqtt.messages), 4)
-        self.assertDictEqual(self.mqtt.messages, dictionary)
+        self.assertIsNotNone(self.mqtt.messages())
+        self.assertEqual(len(self.mqtt.messages()), 4)
+        self.assertDictEqual(self.mqtt.messages(), dictionary)

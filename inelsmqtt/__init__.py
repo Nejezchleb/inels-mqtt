@@ -100,6 +100,14 @@ class InelsMqtt:
         return self.__client
 
     @property
+    def is_available(self) -> bool:
+        """Is broker available
+
+        Returns:
+            bool: Get information of mqtt broker availability
+        """
+        return self.__is_available
+
     def messages(self) -> dict[str, str]:
         """List of all messages
 
@@ -110,15 +118,6 @@ class InelsMqtt:
             is payload of topic
         """
         return self.__messages
-
-    @property
-    def is_available(self) -> bool:
-        """Is broker available
-
-        Returns:
-            bool: Get information of mqtt broker availability
-        """
-        return self.__is_available
 
     def test_connection(self) -> bool:
         """Test connection. It's used only for connection

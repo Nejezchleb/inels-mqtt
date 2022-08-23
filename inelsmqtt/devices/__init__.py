@@ -123,7 +123,7 @@ class Device(object):
         Returns:
             bool: True/False
         """
-        val = self._Device__mqtt.messages[self._Device__connected_topic]
+        val = self._Device__mqtt.messages()[self._Device__connected_topic]
         if isinstance(val, (bytes, bytearray)):
             val = val.decode()
 
@@ -176,7 +176,7 @@ class Device(object):
         Returns:
             Any: DeviceValue
         """
-        val = self.__mqtt.messages.get(self.state_topic)
+        val = self.__mqtt.messages().get(self.state_topic)
         dev_value = DeviceValue(
             self.__device_type,
             self.__inels_type,

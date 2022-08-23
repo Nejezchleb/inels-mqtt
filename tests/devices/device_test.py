@@ -3,7 +3,7 @@
 """
 from operator import itemgetter
 
-from unittest.mock import Mock, patch, PropertyMock
+from unittest.mock import Mock, patch
 from unittest import TestCase
 from inelsmqtt import InelsMqtt
 from inelsmqtt.util import DeviceValue
@@ -146,7 +146,7 @@ class DeviceTest(TestCase):
         self.assertEqual(dev_with_title.set_topic, set_topic)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.publish")
-    @patch("inelsmqtt.InelsMqtt.messages", new_callable=PropertyMock)
+    @patch("inelsmqtt.InelsMqtt.messages")
     def test_set_payload(self, mock_messages, mock_publish) -> None:
         """Test set payload of the device."""
         self.assertTrue(self.switch.set_ha_value(True))
@@ -185,7 +185,7 @@ class DeviceTest(TestCase):
         self.assertEqual(info.model_number, self.switch.inels_type)
         self.assertEqual(info.sw_version, VERSION)
 
-    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages", new_callable=PropertyMock)
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
     def test_is_available(self, mock_messages) -> None:
         """Test of the device availability."""
 
@@ -196,7 +196,7 @@ class DeviceTest(TestCase):
 
         self.assertTrue(is_avilable)
 
-    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages", new_callable=PropertyMock)
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
     def test_is_not_available(self, mock_messages) -> None:
         """Test of the dvice availability wit result false."""
 
@@ -207,7 +207,7 @@ class DeviceTest(TestCase):
 
         self.assertFalse(is_avilable)
 
-    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages", new_callable=PropertyMock)
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
     def test_temperature_parsing(self, mock_message) -> None:
         """Test parsing teperature data to relevant format."""
         mock_message.return_value = {TEST_SENSOR_TOPIC_STATE: TEST_TEMPERATURE_DATA}
@@ -244,7 +244,7 @@ class DeviceTest(TestCase):
         self.assertEqual(temp_out_dec, temp_out_decimal_result)
         self.assertEqual(battery_dec, batter_decimal_result)
 
-    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages", new_callable=PropertyMock)
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
     def test_device_dimmable_light_test_values(self, mock_message) -> None:
         """Test if the light is on."""
         mock_message.return_value = {
@@ -261,7 +261,7 @@ class DeviceTest(TestCase):
         self.assertEqual(values.inels_set_value, TEST_LIGHT_SET_INELS_VALUE)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.publish")
-    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages", new_callable=PropertyMock)
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
     def test_device_set_not_support_dimmable_light_value(
         self, mock_message, mock_publish
     ) -> None:
@@ -275,7 +275,7 @@ class DeviceTest(TestCase):
 
         self.assertEqual(self.light.state, TEST_LIGH_STATE_HA_VALUE)
 
-    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages", new_callable=PropertyMock)
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
     def test_device_support_cover_initialized(self, mock_message) -> None:
         """Test covers all props. initialization."""
         mock_message.return_value = {
@@ -289,7 +289,7 @@ class DeviceTest(TestCase):
         self.assertEqual(self.shutter.state, STATE_OPEN)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.publish")
-    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages", new_callable=PropertyMock)
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
     def test_device_support_cover_open_stop_and_close(
         self, mock_message, mock_publish
     ) -> None:

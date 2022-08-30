@@ -54,7 +54,6 @@ from tests.const import (
     TEST_LIGHT_SET_INELS_VALUE,
     TEST_CLIMATE_RFATV_1_STATE_VALUE,
     TEST_CLIMATE_RFATV_1_TOPIC_CONNECTED,
-    TEST_CLIMATE_RFATV_1_SET_VALUE,
     TEST_CLIMATE_RFATV_1_TOPIC_STATE,
     TEST_SENSOR_TOPIC_STATE,
     TEST_AVAILABILITY_OFF,
@@ -107,7 +106,9 @@ class DeviceTest(TestCase):
         self.shutter = Device(
             InelsMqtt(config), TEST_COVER_RFJA_12_TOPIC_STATE, "Shutter"
         )
-        self.valve = Device(InelsMqtt(config), TEST_CLIMATE_RFATV_1_TOPIC_STATE, "Climate")
+        self.valve = Device(
+            InelsMqtt(config), TEST_CLIMATE_RFATV_1_TOPIC_STATE, "Climate"
+        )
 
     def tearDown(self) -> None:
         """Destroy all instances and stop patches"""
@@ -361,9 +362,7 @@ class DeviceTest(TestCase):
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.publish")
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
-    def test_device_set_climate_valve_value(
-        self, mock_message, mock_publish
-    ) -> None:
+    def test_device_set_climate_valve_value(self, mock_message, mock_publish) -> None:
         """Test valve value."""
         mock_message.return_value = {
             TEST_CLIMATE_RFATV_1_TOPIC_STATE: TEST_CLIMATE_RFATV_1_STATE_VALUE

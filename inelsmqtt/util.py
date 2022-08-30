@@ -140,7 +140,7 @@ class DeviceValue(object):
                 self.__ha_value = ha_val
         elif self.__device_type is CLIMATE:
             if self.__inels_type is RFATV_1:
-                val = self.__ha_value*2
+                val = self.__ha_value * 2
                 self.__inels_set_value = f"00 {val:x} 00".upper()
 
     def __find_keys_by_value(self, array: dict, value, last_value) -> Any:

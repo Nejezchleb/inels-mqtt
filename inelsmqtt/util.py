@@ -8,13 +8,17 @@ from inelsmqtt.mqtt_client import GetMessageType
 
 from .const import (
     ANALOG_REGULATOR_SET_BYTES,
+    CLIMATE_TYPE_09_DATA,
     COVER,
+    CURRENT_TEMP,
     DEVICE_TYPE_05_DATA,
     DEVICE_TYPE_05_HEX_VALUES,
     RFDAC_71B,
     LIGHT,
     SENSOR,
+    CLIMATE,
     RFJA_12,
+    RFATV_1,
     SHUTTER_SET,
     SHUTTER_STATE_LIST,
     SHUTTER_STATES,
@@ -80,6 +84,15 @@ class DeviceValue(object):
 
             self.__ha_value = ha_val if ha_val is not None else self.__last_value
             self.__inels_set_value = SHUTTER_SET[self.__ha_value]
+        elif self.__device_type is CLIMATE:
+            if self.__inels_type is RFATV_1:
+                temp_hex = self.__trim_inels_status_values(
+                    CLIMATE_TYPE_09_DATA, CURRENT_TEMP, ""
+                )
+                temp = int(temp_hex, 16) * 0.5
+                self.__ha_value = temp
+            else:
+                self.__ha_value = self.__inels_status_value
 
     def __trim_inels_status_values(
         self, selector: dict[str, Any], fragment: str, jointer: str
@@ -125,6 +138,10 @@ class DeviceValue(object):
                     else prev_val
                 )
                 self.__ha_value = ha_val
+        elif self.__device_type is CLIMATE:
+            if self.__inels_type is RFATV_1:
+                val = self.__ha_value * 2
+                self.__inels_set_value = f"00 {val:x} 00".upper()
 
     def __find_keys_by_value(self, array: dict, value, last_value) -> Any:
         """Return key from dict by value

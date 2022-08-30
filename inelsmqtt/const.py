@@ -9,6 +9,7 @@ SWITCH = "switch"
 SENSOR = "sensor"
 LIGHT = "light"
 COVER = "cover"
+CLIMATE = "climate"
 
 # device types
 DEVICE_TYPE_DICT = {
@@ -16,23 +17,28 @@ DEVICE_TYPE_DICT = {
     "03": COVER,
     "05": LIGHT,
     "10": SENSOR,
+    "09": CLIMATE,
 }
 
 RFSC_61 = "RFSC-61"
 RFTI_10B = "RFTI-10B"
 RFDAC_71B = "RFDAC-71B"
 RFJA_12 = "RFJA-12"
+RFATV_1 = "RFATV-1"
 
 INELS_DEVICE_TYPE_DICT = {
     "02": RFSC_61,
     "10": RFTI_10B,
     "05": RFDAC_71B,
     "03": RFJA_12,
+    "09": RFATV_1,
 }
 
 BATTERY = "battery"
 TEMP_IN = "temp_in"
 TEMP_OUT = "temp_out"
+CURRENT_TEMP = "current_temp"
+OPEN_IN_PERCENTAGE = "open_in_percentage"
 RAMP_UP = "ramp_up"  # náběh
 TIME_RAMP_UP = "time_ramp"  # časový náběh
 TIME_RAMP_DOWN = "time_ramp_down"  # časový doběh
@@ -107,6 +113,8 @@ DEVICE_TYPE_05_DATA = {RFDAC_71B: [0, 1]}
 TEMP_SENSOR_DATA = {BATTERY: [0], TEMP_IN: [2, 1], TEMP_OUT: [4, 3]}
 
 SHUTTER_TYPE_03_DATA = {RFJA_12: [1]}
+
+CLIMATE_TYPE_09_DATA = {OPEN_IN_PERCENTAGE: [0], CURRENT_TEMP: [1], BATTERY: [3]}
 
 DISCOVERY_TIMEOUT_IN_SEC = 5
 

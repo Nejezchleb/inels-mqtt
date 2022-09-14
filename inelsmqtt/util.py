@@ -8,17 +8,19 @@ from inelsmqtt.mqtt_client import GetMessageType
 
 from .const import (
     ANALOG_REGULATOR_SET_BYTES,
+    BATTERY,
     CLIMATE_TYPE_09_DATA,
     COVER,
     CURRENT_TEMP,
     DEVICE_TYPE_05_DATA,
     DEVICE_TYPE_05_HEX_VALUES,
+    REQUIRED_TEMP,
     RFDAC_71B,
     LIGHT,
     SENSOR,
     CLIMATE,
     RFJA_12,
-    RFATV_1,
+    RFATV_2,
     SHUTTER_SET,
     SHUTTER_STATE_LIST,
     SHUTTER_STATES,
@@ -30,6 +32,11 @@ from .const import (
 
 ConfigType = Dict[str, str]
 _LOGGER = logging.getLogger(__name__)
+
+
+def new_object(**kwargs):
+    """Create new anonymouse object."""
+    return type("Object", (), kwargs)
 
 
 class DeviceValue(object):
@@ -85,12 +92,22 @@ class DeviceValue(object):
             self.__ha_value = ha_val if ha_val is not None else self.__last_value
             self.__inels_set_value = SHUTTER_SET[self.__ha_value]
         elif self.__device_type is CLIMATE:
-            if self.__inels_type is RFATV_1:
-                temp_hex = self.__trim_inels_status_values(
+            if self.__inels_type is RFATV_2:
+                temp_current_hex = self.__trim_inels_status_values(
                     CLIMATE_TYPE_09_DATA, CURRENT_TEMP, ""
                 )
-                temp = int(temp_hex, 16) * 0.5
-                self.__ha_value = temp
+                temp_current = int(temp_current_hex, 16) * 0.5
+                temp_required_hex = self.__trim_inels_status_values(
+                    CLIMATE_TYPE_09_DATA, REQUIRED_TEMP, ""
+                )
+                temp_required = int(temp_required_hex, 16) * 0.5
+                battery_hex = self.__trim_inels_status_values(
+                    CLIMATE_TYPE_09_DATA, BATTERY, ""
+                )
+                batter = int(battery_hex, 16)
+                self.__ha_value = new_object(
+                    battery=batter, current=temp_current, required=temp_required
+                )
             else:
                 self.__ha_value = self.__inels_status_value
 
@@ -139,9 +156,9 @@ class DeviceValue(object):
                 )
                 self.__ha_value = ha_val
         elif self.__device_type is CLIMATE:
-            if self.__inels_type is RFATV_1:
-                val = self.__ha_value * 2
-                self.__inels_set_value = f"00 {val:x} 00".upper()
+            if self.__inels_type is RFATV_2:
+                required_temp = int(round(self.__ha_value.required * 2, 0))
+                self.__inels_set_value = f"00 {required_temp:x} 00".upper()
 
     def __find_keys_by_value(self, array: dict, value, last_value) -> Any:
         """Return key from dict by value

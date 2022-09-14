@@ -13,7 +13,7 @@ from inelsmqtt.const import (
     CLIMATE,
     COVER,
     MANUFACTURER,
-    RFATV_1,
+    RFATV_2,
     RFJA_12,
     STATE_CLOSED,
     STATE_OPEN,
@@ -52,9 +52,9 @@ from tests.const import (
     TEST_LIGH_STATE_INELS_VALUE,
     TEST_LIGHT_DIMMABLE_TOPIC_STATE,
     TEST_LIGHT_SET_INELS_VALUE,
-    TEST_CLIMATE_RFATV_1_STATE_VALUE,
-    TEST_CLIMATE_RFATV_1_TOPIC_CONNECTED,
-    TEST_CLIMATE_RFATV_1_TOPIC_STATE,
+    TEST_CLIMATE_RFATV_2_STATE_VALUE,
+    TEST_CLIMATE_RFATV_2_TOPIC_CONNECTED,
+    TEST_CLIMATE_RFATV_2_TOPIC_STATE,
     TEST_SENSOR_TOPIC_STATE,
     TEST_AVAILABILITY_OFF,
     TEST_AVAILABILITY_ON,
@@ -107,7 +107,7 @@ class DeviceTest(TestCase):
             InelsMqtt(config), TEST_COVER_RFJA_12_TOPIC_STATE, "Shutter"
         )
         self.valve = Device(
-            InelsMqtt(config), TEST_CLIMATE_RFATV_1_TOPIC_STATE, "Climate"
+            InelsMqtt(config), TEST_CLIMATE_RFATV_2_TOPIC_STATE, "Climate"
         )
 
     def tearDown(self) -> None:
@@ -349,26 +349,30 @@ class DeviceTest(TestCase):
     def test_device_support_climate_initialized(self, mock_message) -> None:
         """Test climate all props. initialization."""
         mock_message.return_value = {
-            TEST_CLIMATE_RFATV_1_TOPIC_STATE: TEST_CLIMATE_RFATV_1_STATE_VALUE,
-            TEST_CLIMATE_RFATV_1_TOPIC_CONNECTED: TEST_AVAILABILITY_ON,
+            TEST_CLIMATE_RFATV_2_TOPIC_STATE: TEST_CLIMATE_RFATV_2_STATE_VALUE,
+            TEST_CLIMATE_RFATV_2_TOPIC_CONNECTED: TEST_AVAILABILITY_ON,
         }
 
         self.valve.get_value()
 
         self.assertTrue(self.valve.is_available)
         self.assertEqual(self.valve.device_type, CLIMATE)
-        self.assertEqual(self.valve.inels_type, RFATV_1)
-        self.assertEqual(self.valve.state, 26.0)
+        self.assertEqual(self.valve.inels_type, RFATV_2)
+        self.assertEqual(self.valve.state.current, 26.0)
+        self.assertEqual(self.valve.state.required, 32.0)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.publish")
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
     def test_device_set_climate_valve_value(self, mock_message, mock_publish) -> None:
         """Test valve value."""
         mock_message.return_value = {
-            TEST_CLIMATE_RFATV_1_TOPIC_STATE: TEST_CLIMATE_RFATV_1_STATE_VALUE
+            TEST_CLIMATE_RFATV_2_TOPIC_STATE: TEST_CLIMATE_RFATV_2_STATE_VALUE
         }
         mock_publish.return_value = True
 
-        self.valve.set_ha_value(30)
+        state = self.valve.state
+        state.required = 30.0
+
+        self.valve.set_ha_value(state)
 
         self.assertEqual(self.valve.values.inels_set_value, "00 3C 00")

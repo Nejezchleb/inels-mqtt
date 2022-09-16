@@ -52,7 +52,7 @@ from tests.const import (
     TEST_LIGH_STATE_INELS_VALUE,
     TEST_LIGHT_DIMMABLE_TOPIC_STATE,
     TEST_LIGHT_SET_INELS_VALUE,
-    TEST_WATER_HEATER_RFATV_2_STATE_VALUE,
+    TEST_WATER_HEATER_RFATV_2_OPEN_TO_40_STATE_VALUE,
     TEST_WATER_HEATER_RFATV_2_TOPIC_CONNECTED,
     TEST_WATER_HEATER_RFATV_2_TOPIC_STATE,
     TEST_SENSOR_TOPIC_STATE,
@@ -346,10 +346,10 @@ class DeviceTest(TestCase):
         self.assertEqual(self.shutter.state, STATE_OPEN)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
-    def test_device_support_climate_initialized(self, mock_message) -> None:
+    def test_device_support_water_heater_initialized(self, mock_message) -> None:
         """Test climate all props. initialization."""
         mock_message.return_value = {
-            TEST_WATER_HEATER_RFATV_2_TOPIC_STATE: TEST_WATER_HEATER_RFATV_2_STATE_VALUE,
+            TEST_WATER_HEATER_RFATV_2_TOPIC_STATE: TEST_WATER_HEATER_RFATV_2_OPEN_TO_40_STATE_VALUE,
             TEST_WATER_HEATER_RFATV_2_TOPIC_CONNECTED: TEST_AVAILABILITY_ON,
         }
 
@@ -360,13 +360,16 @@ class DeviceTest(TestCase):
         self.assertEqual(self.valve.inels_type, RFATV_2)
         self.assertEqual(self.valve.state.current, 26.0)
         self.assertEqual(self.valve.state.required, 32.0)
+        self.assertEqual(self.valve.state.open_in_percentage, 40.0)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.publish")
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
-    def test_device_set_climate_valve_value(self, mock_message, mock_publish) -> None:
+    def test_device_set_water_heater_valve_value(
+        self, mock_message, mock_publish
+    ) -> None:
         """Test valve value."""
         mock_message.return_value = {
-            TEST_WATER_HEATER_RFATV_2_TOPIC_STATE: TEST_WATER_HEATER_RFATV_2_STATE_VALUE
+            TEST_WATER_HEATER_RFATV_2_TOPIC_STATE: TEST_WATER_HEATER_RFATV_2_OPEN_TO_40_STATE_VALUE
         }
         mock_publish.return_value = True
 

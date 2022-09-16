@@ -9,7 +9,7 @@ SWITCH = "switch"
 SENSOR = "sensor"
 LIGHT = "light"
 COVER = "cover"
-CLIMATE = "climate"
+WATER_HEATER = "water_heater"
 
 # device types
 DEVICE_TYPE_DICT = {
@@ -17,7 +17,7 @@ DEVICE_TYPE_DICT = {
     "03": COVER,
     "05": LIGHT,
     "10": SENSOR,
-    "09": CLIMATE,
+    "09": WATER_HEATER,
 }
 
 RFSC_61 = "RFSC-61"
@@ -115,7 +115,7 @@ TEMP_SENSOR_DATA = {BATTERY: [0], TEMP_IN: [2, 1], TEMP_OUT: [4, 3]}
 
 SHUTTER_TYPE_03_DATA = {RFJA_12: [1]}
 
-CLIMATE_TYPE_09_DATA = {
+WATER_HEATER_TYPE_09_DATA = {
     OPEN_IN_PERCENTAGE: [0],
     CURRENT_TEMP: [1],
     BATTERY: [2],

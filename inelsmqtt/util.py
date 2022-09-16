@@ -9,7 +9,7 @@ from inelsmqtt.mqtt_client import GetMessageType
 from .const import (
     ANALOG_REGULATOR_SET_BYTES,
     BATTERY,
-    CLIMATE_TYPE_09_DATA,
+    WATER_HEATER_TYPE_09_DATA,
     COVER,
     CURRENT_TEMP,
     DEVICE_TYPE_05_DATA,
@@ -18,7 +18,6 @@ from .const import (
     RFDAC_71B,
     LIGHT,
     SENSOR,
-    CLIMATE,
     RFJA_12,
     RFATV_2,
     SHUTTER_SET,
@@ -28,6 +27,7 @@ from .const import (
     SWITCH_SET,
     SWITCH_STATE,
     RFTI_10B,
+    WATER_HEATER,
 )
 
 ConfigType = Dict[str, str]
@@ -91,18 +91,18 @@ class DeviceValue(object):
 
             self.__ha_value = ha_val if ha_val is not None else self.__last_value
             self.__inels_set_value = SHUTTER_SET[self.__ha_value]
-        elif self.__device_type is CLIMATE:
+        elif self.__device_type is WATER_HEATER:
             if self.__inels_type is RFATV_2:
                 temp_current_hex = self.__trim_inels_status_values(
-                    CLIMATE_TYPE_09_DATA, CURRENT_TEMP, ""
+                    WATER_HEATER_TYPE_09_DATA, CURRENT_TEMP, ""
                 )
                 temp_current = int(temp_current_hex, 16) * 0.5
                 temp_required_hex = self.__trim_inels_status_values(
-                    CLIMATE_TYPE_09_DATA, REQUIRED_TEMP, ""
+                    WATER_HEATER_TYPE_09_DATA, REQUIRED_TEMP, ""
                 )
                 temp_required = int(temp_required_hex, 16) * 0.5
                 battery_hex = self.__trim_inels_status_values(
-                    CLIMATE_TYPE_09_DATA, BATTERY, ""
+                    WATER_HEATER_TYPE_09_DATA, BATTERY, ""
                 )
                 batter = int(battery_hex, 16)
                 self.__ha_value = new_object(
@@ -155,7 +155,7 @@ class DeviceValue(object):
                     else prev_val
                 )
                 self.__ha_value = ha_val
-        elif self.__device_type is CLIMATE:
+        elif self.__device_type is WATER_HEATER:
             if self.__inels_type is RFATV_2:
                 required_temp = int(round(self.__ha_value.required * 2, 0))
                 self.__inels_set_value = f"00 {required_temp:x} 00".upper()

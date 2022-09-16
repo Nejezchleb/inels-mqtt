@@ -28,6 +28,7 @@ from .const import (
     SWITCH_STATE,
     RFTI_10B,
     WATER_HEATER,
+    OPEN_IN_PERCENTAGE,
 )
 
 ConfigType = Dict[str, str]
@@ -104,9 +105,16 @@ class DeviceValue(object):
                 battery_hex = self.__trim_inels_status_values(
                     WATER_HEATER_TYPE_09_DATA, BATTERY, ""
                 )
+                open_to_hex = self.__trim_inels_status_values(
+                    WATER_HEATER_TYPE_09_DATA, OPEN_IN_PERCENTAGE, ""
+                )
+                open_to_percentage = int(open_to_hex, 16) * 0.5
                 batter = int(battery_hex, 16)
                 self.__ha_value = new_object(
-                    battery=batter, current=temp_current, required=temp_required
+                    battery=batter,
+                    current=temp_current,
+                    required=temp_required,
+                    open_in_percentage=open_to_percentage,
                 )
             else:
                 self.__ha_value = self.__inels_status_value

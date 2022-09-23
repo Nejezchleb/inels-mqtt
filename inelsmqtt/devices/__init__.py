@@ -70,7 +70,6 @@ class Device(object):
 
         # subscribe availability
         self.__mqtt.subscribe(self.__connected_topic, 0, None, None)
-        self.__mqtt.append_data_change_listener(self.__state_topic, self.__update_value)
 
     @property
     def unique_id(self) -> str:
@@ -171,9 +170,14 @@ class Device(object):
         """Get values of inels and ha type."""
         return self.__values
 
-    def __update_value(self, new_value: Any) -> None:
+    @property
+    def mqtt(self) -> InelsMqtt:
+        """Instnace of broker."""
+        return self.__mqtt
+
+    def update_value(self, new_value: Any) -> DeviceValue:
         """Update value after broker change it."""
-        self.__get_value(new_value)
+        return self.__get_value(new_value)
 
     def __get_value(self, val: Any) -> DeviceValue:
         """Get value and transform into the DeviceValue."""

@@ -131,9 +131,7 @@ class InelsMqtt:
 
         return self.__is_available
 
-    def subscribe_listener(
-        self, topic: str, fnc: Callable[[Any], Any]
-    ) -> None:
+    def subscribe_listener(self, topic: str, fnc: Callable[[Any], Any]) -> None:
         """Append new item into the datachange listener."""
         self._listeners[topic] = fnc
 

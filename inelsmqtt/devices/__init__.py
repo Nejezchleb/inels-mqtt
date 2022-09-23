@@ -170,13 +170,17 @@ class Device(object):
         """Get values of inels and ha type."""
         return self.__values
 
-    def get_value(self) -> DeviceValue:
-        """Get value from inels
+    @property
+    def mqtt(self) -> InelsMqtt:
+        """Instnace of broker."""
+        return self.__mqtt
 
-        Returns:
-            Any: DeviceValue
-        """
-        val = self.__mqtt.messages().get(self.state_topic)
+    def update_value(self, new_value: Any) -> DeviceValue:
+        """Update value after broker change it."""
+        return self.__get_value(new_value)
+
+    def __get_value(self, val: Any) -> DeviceValue:
+        """Get value and transform into the DeviceValue."""
         dev_value = DeviceValue(
             self.__device_type,
             self.__inels_type,
@@ -187,6 +191,15 @@ class Device(object):
         self.__values = dev_value
 
         return dev_value
+
+    def get_value(self) -> DeviceValue:
+        """Get value from inels
+
+        Returns:
+            Any: DeviceValue
+        """
+        val = self.__mqtt.messages().get(self.state_topic)
+        return self.__get_value(val)
 
     def set_ha_value(self, value: Any) -> bool:
         """Set HA value. Will automaticaly convert HA value

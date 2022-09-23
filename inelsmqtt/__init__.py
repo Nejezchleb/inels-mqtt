@@ -4,7 +4,7 @@ import time
 import uuid
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Callable
 
 import paho.mqtt.client as mqtt
 
@@ -86,6 +86,7 @@ class InelsMqtt:
         _t = config.get(MQTT_TIMEOUT)
         self.__timeout = _t if _t is not None else __DISCOVERY_TIMEOUT__
 
+        self._listeners = dict[str, Callable[[Any], Any]]()
         self.__try_connect = False
         self.__message_readed = False
         self.__messages = dict[str, str]()
@@ -129,6 +130,12 @@ class InelsMqtt:
         self.disconnect()
 
         return self.__is_available
+
+    def subscribe_listener(
+        self, topic: str, fnc: Callable[[Any], Any]
+    ) -> None:
+        """Append new item into the datachange listener."""
+        self._listeners[topic] = fnc
 
     def __connect(self) -> None:
         """Create connection and register callback function to neccessary
@@ -337,6 +344,10 @@ class InelsMqtt:
 
         if device_type in DEVICE_TYPE_DICT:
             self.__messages[msg.topic] = msg.payload
+
+        if len(self._listeners) > 0 and msg.topic in self._listeners:
+            # This pass data change directely into the device.
+            self._listeners[msg.topic](msg.payload)
 
     def __on_subscribe(
         self,

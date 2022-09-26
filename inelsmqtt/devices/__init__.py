@@ -132,10 +132,6 @@ class Device(object):
         Returns:
             bool: True/False
         """
-        # when connected topic is unsubscribed, then subscribe it again
-        if self.is_subscribed(self.__connected_topic) is False:
-            self.__mqtt.subscribe(self.__connected_topic)
-
         val = self.__mqtt.messages()[self._Device__connected_topic]
         if isinstance(val, (bytes, bytearray)):
             val = val.decode()

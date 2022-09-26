@@ -113,13 +113,21 @@ class InelsMqtt:
         """
         return self.__is_available
 
-    def is_subscribed(self) -> dict[str, bool]:
+    def is_subscribed(self, topic) -> dict[str, bool]:
         """List of all subscribed entites with their state
 
         Returns:
             dict[str, bool]: list of all states
         """
-        return self.__is_subscribed_list
+        return self.__is_subscribed_list[topic]
+
+    def last_values(self, topic) -> dict[str, str]:
+        """List of all last values in all subscribed topics
+
+        Returns:
+            dict[str, str]: list of all inels last values
+        """
+        return self.__last_values[topic]
 
     def messages(self) -> dict[str, str]:
         """List of all messages

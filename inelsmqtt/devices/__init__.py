@@ -175,6 +175,11 @@ class Device(object):
         return self.__state
 
     @property
+    def last_value(self) -> DeviceValue:
+        """Get the last device value."""
+        return self.__get_value(self.__mqtt.last_values(self.__state_topic))
+
+    @property
     def values(self) -> DeviceValue:
         """Get values of inels and ha type."""
         return self.__values

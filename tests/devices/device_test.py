@@ -86,6 +86,7 @@ class DeviceTest(TestCase):
                 return_value=Mock(),
             ),
             patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.subscribe", return_value=Mock()),
+            patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.is_subscribed", return_value=Mock()),
             patch(f"{TEST_INELS_MQTT_NAMESPACE}._LOGGER", return_value=Mock()),
         ]
 

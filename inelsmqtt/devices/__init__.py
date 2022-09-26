@@ -180,6 +180,15 @@ class Device(object):
         return self.__values
 
     @property
+    def last_values(self) -> DeviceValue:
+        """Get last value of the device
+
+        Returns:
+            DeviceValue: latest values in many formats
+        """
+        return self.__get_value(self.__mqtt.last_value(self.__set_topic))
+
+    @property
     def mqtt(self) -> InelsMqtt:
         """Instnace of broker."""
         return self.__mqtt

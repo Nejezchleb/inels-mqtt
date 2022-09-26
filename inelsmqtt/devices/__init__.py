@@ -81,6 +81,15 @@ class Device(object):
         return self.__unique_id
 
     @property
+    def is_subscribed(self) -> bool:
+        """Is device subscribed to mqtt
+
+        Returns:
+            bool: True/False
+        """
+        return self.__mqtt.is_subscribed(self.__state_topic)
+
+    @property
     def inels_type(self) -> str:
         """Get inels type of the device
 

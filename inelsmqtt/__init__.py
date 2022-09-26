@@ -2,6 +2,7 @@
 import logging
 import time
 import uuid
+import copy
 
 from datetime import datetime
 from typing import Any, Callable
@@ -71,6 +72,7 @@ class InelsMqtt:
         self.__client.on_connect = self.__on_connect
         self.client.on_publish = self.__on_publish
         self.client.on_subscribe = self.__on_subscribe
+        self.client.on_disconnect = self.__on_disconect
 
         self.__client.enable_logger()
 
@@ -86,7 +88,9 @@ class InelsMqtt:
         _t = config.get(MQTT_TIMEOUT)
         self.__timeout = _t if _t is not None else __DISCOVERY_TIMEOUT__
 
-        self._listeners = dict[str, Callable[[Any], Any]]()
+        self.__listeners = dict[str, Callable[[Any], Any]]()
+        self.__is_subscribed_list = dict[str, bool]()
+        self.__last_values = dict[str, str]()
         self.__try_connect = False
         self.__message_readed = False
         self.__messages = dict[str, str]()
@@ -108,6 +112,14 @@ class InelsMqtt:
             bool: Get information of mqtt broker availability
         """
         return self.__is_available
+
+    def is_subscribed(self) -> dict[str, bool]:
+        """List of all subscribed entites with their state
+
+        Returns:
+            dict[str, bool]: list of all states
+        """
+        return self.__is_subscribed_list
 
     def messages(self) -> dict[str, str]:
         """List of all messages
@@ -133,7 +145,7 @@ class InelsMqtt:
 
     def subscribe_listener(self, topic: str, fnc: Callable[[Any], Any]) -> None:
         """Append new item into the datachange listener."""
-        self._listeners[topic] = fnc
+        self.__listeners[topic] = fnc
 
     def __connect(self) -> None:
         """Create connection and register callback function to neccessary
@@ -153,6 +165,25 @@ class InelsMqtt:
                 break
 
             time.sleep(0.1)
+
+    def __on_disconect(
+        self,
+        client: mqtt.Client,  # pylint: disable=unused-argument
+        userdata,  # pylint: disable=unused-argument
+        reason_code,
+    ) -> None:
+        """On disconnect callback function
+
+        Args:
+            client (mqtt.Client): instance of the mqtt client
+            userdata (Any): users data
+            reason_code (number): reason code
+        """
+        _LOGGER.info("Disconnecting reason [%s]", reason_code)
+
+        for item in self.__is_subscribed_list.keys():
+            self.__is_subscribed_list[item] = False
+            _LOGGER.info("Disconnected %s", item)
 
     def __on_connect(
         self,
@@ -323,6 +354,8 @@ class InelsMqtt:
 
         if device_type in DEVICE_TYPE_DICT and status == "status":
             self.__discovered[msg.topic] = msg.payload
+            self.__last_values[msg.topic] = msg.payload
+            self.__is_subscribed_list[msg.topic] = True
 
     def __on_message(
         self,
@@ -341,11 +374,19 @@ class InelsMqtt:
         device_type = msg.topic.split("/")[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]
 
         if device_type in DEVICE_TYPE_DICT:
+            # keep last value
+            self.__last_values[msg.topic] = (
+                copy.copy(self.__messages[msg.topic])
+                if msg.topic in self.__messages
+                else msg.payload
+            )
             self.__messages[msg.topic] = msg.payload
+            # update info that the topic is subscribed
+            self.__is_subscribed_list[msg.topic] = True
 
-        if len(self._listeners) > 0 and msg.topic in self._listeners:
+        if len(self.__listeners) > 0 and msg.topic in self.__listeners:
             # This pass data change directely into the device.
-            self._listeners[msg.topic](msg.payload)
+            self.__listeners[msg.topic](msg.payload)
 
     def __on_subscribe(
         self,

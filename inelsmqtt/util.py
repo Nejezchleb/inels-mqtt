@@ -15,6 +15,7 @@ from .const import (
     DEVICE_TYPE_05_DATA,
     DEVICE_TYPE_05_HEX_VALUES,
     BUTTON_TYPE_19_DATA,
+    BUTTON_DEVICE_AMOUNT,
     BUTTON_NUMBER,
     REQUIRED_TEMP,
     RFDAC_71B,
@@ -139,6 +140,7 @@ class DeviceValue(object):
                     battery=100 if state_bin_str[4] == "0" else 0,
                     pressing=state_bin_str[3] == "1",
                     changed=state_bin_str[2] == "1",
+                    amount=BUTTON_DEVICE_AMOUNT.get(self.__inels_type),
                 )
 
     def __trim_inels_status_values(

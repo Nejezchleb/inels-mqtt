@@ -9,7 +9,8 @@ SWITCH = "switch"
 SENSOR = "sensor"
 LIGHT = "light"
 COVER = "cover"
-WATER_HEATER = "water_heater"
+CLIMATE = "climate"
+BUTTON = "button"
 
 # device types
 DEVICE_TYPE_DICT = {
@@ -17,7 +18,8 @@ DEVICE_TYPE_DICT = {
     "03": COVER,
     "05": LIGHT,
     "10": SENSOR,
-    "09": WATER_HEATER,
+    "09": CLIMATE,
+    "19": BUTTON,
 }
 
 RFSC_61 = "RFSC-61"
@@ -25,6 +27,8 @@ RFTI_10B = "RFTI-10B"
 RFDAC_71B = "RFDAC-71B"
 RFJA_12 = "RFJA-12"
 RFATV_2 = "RFATV-2"
+RFGB_40 = "RFGB-40"
+RFKEY_40 = "RFKEY-40"
 
 INELS_DEVICE_TYPE_DICT = {
     "02": RFSC_61,
@@ -32,6 +36,7 @@ INELS_DEVICE_TYPE_DICT = {
     "05": RFDAC_71B,
     "03": RFJA_12,
     "09": RFATV_2,
+    "19": RFGB_40,
 }
 
 BATTERY = "battery"
@@ -115,7 +120,7 @@ TEMP_SENSOR_DATA = {BATTERY: [0], TEMP_IN: [2, 1], TEMP_OUT: [4, 3]}
 
 SHUTTER_TYPE_03_DATA = {RFJA_12: [1]}
 
-WATER_HEATER_TYPE_09_DATA = {
+CLIMATE_TYPE_09_DATA = {
     OPEN_IN_PERCENTAGE: [0],
     CURRENT_TEMP: [1],
     BATTERY: [2],

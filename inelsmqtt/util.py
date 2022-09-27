@@ -9,7 +9,7 @@ from inelsmqtt.mqtt_client import GetMessageType
 from .const import (
     ANALOG_REGULATOR_SET_BYTES,
     BATTERY,
-    WATER_HEATER_TYPE_09_DATA,
+    CLIMATE_TYPE_09_DATA,
     COVER,
     CURRENT_TEMP,
     DEVICE_TYPE_05_DATA,
@@ -27,8 +27,10 @@ from .const import (
     SWITCH_SET,
     SWITCH_STATE,
     RFTI_10B,
-    WATER_HEATER,
+    CLIMATE,
     OPEN_IN_PERCENTAGE,
+    RFGB_40,
+    BUTTON,
 )
 
 ConfigType = Dict[str, str]
@@ -92,21 +94,21 @@ class DeviceValue(object):
 
             self.__ha_value = ha_val if ha_val is not None else self.__last_value
             self.__inels_set_value = SHUTTER_SET[self.__ha_value]
-        elif self.__device_type is WATER_HEATER:
+        elif self.__device_type is CLIMATE:
             if self.__inels_type is RFATV_2:
                 temp_current_hex = self.__trim_inels_status_values(
-                    WATER_HEATER_TYPE_09_DATA, CURRENT_TEMP, ""
+                    CLIMATE_TYPE_09_DATA, CURRENT_TEMP, ""
                 )
                 temp_current = int(temp_current_hex, 16) * 0.5
                 temp_required_hex = self.__trim_inels_status_values(
-                    WATER_HEATER_TYPE_09_DATA, REQUIRED_TEMP, ""
+                    CLIMATE_TYPE_09_DATA, REQUIRED_TEMP, ""
                 )
                 temp_required = int(temp_required_hex, 16) * 0.5
                 battery_hex = self.__trim_inels_status_values(
-                    WATER_HEATER_TYPE_09_DATA, BATTERY, ""
+                    CLIMATE_TYPE_09_DATA, BATTERY, ""
                 )
                 open_to_hex = self.__trim_inels_status_values(
-                    WATER_HEATER_TYPE_09_DATA, OPEN_IN_PERCENTAGE, ""
+                    CLIMATE_TYPE_09_DATA, OPEN_IN_PERCENTAGE, ""
                 )
                 open_to_percentage = int(open_to_hex, 16) * 0.5
                 batter = int(battery_hex, 16)
@@ -118,6 +120,9 @@ class DeviceValue(object):
                 )
             else:
                 self.__ha_value = self.__inels_status_value
+        elif self.__device_type is BUTTON:
+            if self.__inels_type is RFGB_40:
+                self.__ha_value = True
 
     def __trim_inels_status_values(
         self, selector: dict[str, Any], fragment: str, jointer: str
@@ -163,10 +168,13 @@ class DeviceValue(object):
                     else prev_val
                 )
                 self.__ha_value = ha_val
-        elif self.__device_type is WATER_HEATER:
+        elif self.__device_type is CLIMATE:
             if self.__inels_type is RFATV_2:
                 required_temp = int(round(self.__ha_value.required * 2, 0))
                 self.__inels_set_value = f"00 {required_temp:x} 00".upper()
+        elif self.__device_type is BUTTON:
+            if self.__inels_type is RFGB_40:
+                self.__inels_set_value = f"{self.__ha_value}"
 
     def __find_keys_by_value(self, array: dict, value, last_value) -> Any:
         """Return key from dict by value

@@ -37,7 +37,9 @@ from inelsmqtt.const import (
     MQTT_PROTOCOL,
     PROTO_5,
     VERSION,
-    WATER_HEATER,
+    CLIMATE,
+    BUTTON,
+    RFGB_40,
 )
 
 from tests.const import (
@@ -52,9 +54,9 @@ from tests.const import (
     TEST_LIGH_STATE_INELS_VALUE,
     TEST_LIGHT_DIMMABLE_TOPIC_STATE,
     TEST_LIGHT_SET_INELS_VALUE,
-    TEST_WATER_HEATER_RFATV_2_OPEN_TO_40_STATE_VALUE,
-    TEST_WATER_HEATER_RFATV_2_TOPIC_CONNECTED,
-    TEST_WATER_HEATER_RFATV_2_TOPIC_STATE,
+    TEST_CLIMATE_RFATV_2_OPEN_TO_40_STATE_VALUE,
+    TEST_CLIMATE_RFATV_2_TOPIC_CONNECTED,
+    TEST_CLIMATE_RFATV_2_TOPIC_STATE,
     TEST_SENSOR_TOPIC_STATE,
     TEST_AVAILABILITY_OFF,
     TEST_AVAILABILITY_ON,
@@ -67,6 +69,9 @@ from tests.const import (
     TEST_PORT,
     TEST_USER_NAME,
     TEST_PASSWORD,
+    TEST_BUTTON_RFGB_40_TOPIC_STATE,
+    TEST_BUTTON_RFGB_40_TOPIC_CONNECTED,
+    TEST_BUTTON_RFGB_40_STATE_VALUE,
 )
 
 
@@ -110,8 +115,9 @@ class DeviceTest(TestCase):
             InelsMqtt(config), TEST_COVER_RFJA_12_TOPIC_STATE, "Shutter"
         )
         self.valve = Device(
-            InelsMqtt(config), TEST_WATER_HEATER_RFATV_2_TOPIC_STATE, "Climate"
+            InelsMqtt(config), TEST_CLIMATE_RFATV_2_TOPIC_STATE, CLIMATE
         )
+        self.button = Device(InelsMqtt(config), TEST_BUTTON_RFGB_40_TOPIC_STATE, BUTTON)
 
     def tearDown(self) -> None:
         """Destroy all instances and stop patches"""
@@ -120,6 +126,7 @@ class DeviceTest(TestCase):
         self.light = None
         self.shutter = None
         self.valve = None
+        self.button = None
 
     def test_initialize_device(self) -> None:
         """Test initialization of device object"""
@@ -349,17 +356,17 @@ class DeviceTest(TestCase):
         self.assertEqual(self.shutter.state, STATE_OPEN)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
-    def test_device_support_water_heater_initialized(self, mock_message) -> None:
+    def test_device_support_climate_initialized(self, mock_message) -> None:
         """Test climate all props. initialization."""
         mock_message.return_value = {
-            TEST_WATER_HEATER_RFATV_2_TOPIC_STATE: TEST_WATER_HEATER_RFATV_2_OPEN_TO_40_STATE_VALUE,
-            TEST_WATER_HEATER_RFATV_2_TOPIC_CONNECTED: TEST_AVAILABILITY_ON,
+            TEST_CLIMATE_RFATV_2_TOPIC_STATE: TEST_CLIMATE_RFATV_2_OPEN_TO_40_STATE_VALUE,
+            TEST_CLIMATE_RFATV_2_TOPIC_CONNECTED: TEST_AVAILABILITY_ON,
         }
 
         self.valve.get_value()
 
         self.assertTrue(self.valve.is_available)
-        self.assertEqual(self.valve.device_type, WATER_HEATER)
+        self.assertEqual(self.valve.device_type, CLIMATE)
         self.assertEqual(self.valve.inels_type, RFATV_2)
         self.assertEqual(self.valve.state.current, 26.0)
         self.assertEqual(self.valve.state.required, 32.0)
@@ -367,12 +374,10 @@ class DeviceTest(TestCase):
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.publish")
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
-    def test_device_set_water_heater_valve_value(
-        self, mock_message, mock_publish
-    ) -> None:
+    def test_device_set_climate_valve_value(self, mock_message, mock_publish) -> None:
         """Test valve value."""
         mock_message.return_value = {
-            TEST_WATER_HEATER_RFATV_2_TOPIC_STATE: TEST_WATER_HEATER_RFATV_2_OPEN_TO_40_STATE_VALUE
+            TEST_CLIMATE_RFATV_2_TOPIC_STATE: TEST_CLIMATE_RFATV_2_OPEN_TO_40_STATE_VALUE
         }
         mock_publish.return_value = True
 
@@ -382,3 +387,18 @@ class DeviceTest(TestCase):
         self.valve.set_ha_value(state)
 
         self.assertEqual(self.valve.values.inels_set_value, "00 3C 00")
+
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
+    def test_device_support_button_initialized(self, mock_message) -> None:
+        """Test button all props. initialization."""
+        mock_message.return_value = {
+            TEST_BUTTON_RFGB_40_TOPIC_STATE: TEST_BUTTON_RFGB_40_STATE_VALUE,
+            TEST_BUTTON_RFGB_40_TOPIC_CONNECTED: TEST_AVAILABILITY_ON,
+        }
+
+        self.button.get_value()
+
+        self.assertTrue(self.button.is_available)
+        self.assertEqual(self.button.device_type, BUTTON)
+        self.assertEqual(self.button.inels_type, RFGB_40)
+        self.assertTrue(self.button.state)

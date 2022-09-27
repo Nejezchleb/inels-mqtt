@@ -12,6 +12,7 @@ from inelsmqtt.const import (
     INELS_DEVICE_TYPE_DICT,
     MANUFACTURER,
     SENSOR,
+    BUTTON,
     TOPIC_FRAGMENTS,
     FRAGMENT_DEVICE_TYPE,
     FRAGMENT_SERIAL_NUMBER,
@@ -59,7 +60,7 @@ class Device(object):
         self.__state_topic = state_topic
         self.__set_topic = None
 
-        if self.__device_type is not SENSOR:
+        if self.__device_type is not SENSOR and self.__device_type is not BUTTON:
             self.__set_topic = f"{fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/set/{fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"  # noqa: E501
 
         self.__connected_topic = f"{fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/connected/{fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"  # noqa: E501

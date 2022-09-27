@@ -60,6 +60,8 @@ SET_TIME_DOWN = "set_time_down"
 STOP_DOWN = "stop_down"
 STOP_UP = "stop_up"
 STOP = "stop"
+STATE = "state"
+IDENTITY = "identity"
 
 STATE_OPEN = "open"
 STATE_CLOSED = "closed"
@@ -119,6 +121,16 @@ DEVICE_TYPE_05_DATA = {RFDAC_71B: [0, 1]}
 TEMP_SENSOR_DATA = {BATTERY: [0], TEMP_IN: [2, 1], TEMP_OUT: [4, 3]}
 
 SHUTTER_TYPE_03_DATA = {RFJA_12: [1]}
+
+BUTTON_TYPE_19_DATA = {STATE: [0], IDENTITY: [1]}
+BUTTON_NUMBER = {
+    "01": 1,
+    "02": 2,
+    "04": 3,
+    "08": 4,
+    "16": 5,
+    "32": 6,
+}
 
 CLIMATE_TYPE_09_DATA = {
     OPEN_IN_PERCENTAGE: [0],

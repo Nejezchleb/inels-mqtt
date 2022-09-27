@@ -14,6 +14,8 @@ from .const import (
     CURRENT_TEMP,
     DEVICE_TYPE_05_DATA,
     DEVICE_TYPE_05_HEX_VALUES,
+    BUTTON_TYPE_19_DATA,
+    BUTTON_NUMBER,
     REQUIRED_TEMP,
     RFDAC_71B,
     LIGHT,
@@ -31,6 +33,8 @@ from .const import (
     OPEN_IN_PERCENTAGE,
     RFGB_40,
     BUTTON,
+    STATE,
+    IDENTITY,
 )
 
 ConfigType = Dict[str, str]
@@ -122,7 +126,20 @@ class DeviceValue(object):
                 self.__ha_value = self.__inels_status_value
         elif self.__device_type is BUTTON:
             if self.__inels_type is RFGB_40:
-                self.__ha_value = True
+                state = self.__trim_inels_status_values(BUTTON_TYPE_19_DATA, STATE, "")
+                state_hex_str = f"0x{state}"
+                state_bin_str = f"{int(state_hex_str, 16):0>8b}"
+
+                identity = self.__trim_inels_status_values(
+                    BUTTON_TYPE_19_DATA, IDENTITY, ""
+                )
+
+                self.__ha_value = new_object(
+                    number=BUTTON_NUMBER.get(identity),
+                    battery=100 if state_bin_str[4] == "0" else 0,
+                    pressing=state_bin_str[3] == "1",
+                    changed=state_bin_str[2] == "1",
+                )
 
     def __trim_inels_status_values(
         self, selector: dict[str, Any], fragment: str, jointer: str
@@ -173,8 +190,7 @@ class DeviceValue(object):
                 required_temp = int(round(self.__ha_value.required * 2, 0))
                 self.__inels_set_value = f"00 {required_temp:x} 00".upper()
         elif self.__device_type is BUTTON:
-            if self.__inels_type is RFGB_40:
-                self.__inels_set_value = f"{self.__ha_value}"
+            self.__ha_value = ha_val
 
     def __find_keys_by_value(self, array: dict, value, last_value) -> Any:
         """Return key from dict by value

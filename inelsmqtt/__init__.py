@@ -113,13 +113,19 @@ class InelsMqtt:
         """
         return self.__is_available
 
+    @property
+    def list_of_listeners(self) -> dict[str, Callable[[Any], Any]]:
+        """List of listeners."""
+        return self.__listeners
+
     def is_subscribed(self, topic) -> bool:
         """Get info if the topic is subscribed in device
 
         Returns:
             bool: state
         """
-        return self.__is_subscribed_list[topic]
+        is_subscribed = self.__is_subscribed_list.get(topic)
+        return False if is_subscribed is None else is_subscribed
 
     def last_value(self, topic) -> str:
         """Get last value of the selected topic
@@ -130,7 +136,7 @@ class InelsMqtt:
         Returns:
             str: last value of the topic
         """
-        return self.__last_values[topic]
+        return self.__last_values.get(topic)
 
     def messages(self) -> dict[str, str]:
         """List of all messages
@@ -157,6 +163,10 @@ class InelsMqtt:
     def subscribe_listener(self, topic: str, fnc: Callable[[Any], Any]) -> None:
         """Append new item into the datachange listener."""
         self.__listeners[topic] = fnc
+
+    def unsubscribe_listeners(self) -> bool:
+        """Unsubscribe listeners."""
+        self.__listeners.clear()
 
     def __connect(self) -> None:
         """Create connection and register callback function to neccessary
@@ -298,7 +308,7 @@ class InelsMqtt:
 
             time.sleep(0.1)
 
-        return self.__messages[topic]
+        return self.__messages.get(topic)
 
     def discovery_all(self) -> dict[str, str]:
         """Subscribe to selected topic. This method is primary used for

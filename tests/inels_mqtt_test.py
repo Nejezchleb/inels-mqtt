@@ -1,6 +1,7 @@
 """Unit tests for InelsMqtt class
     handling mqtt broker communication.
 """
+from typing import Any
 from unittest.mock import patch, Mock
 from unittest import TestCase
 
@@ -21,6 +22,8 @@ from tests.const import (
     TEST_PORT,
     TEST_USER_NAME,
     TEST_PASSWORD,
+    TEST_CLIMATE_RFATV_2_TOPIC_STATE,
+    TEST_BUTTON_RFGB_40_TOPIC_STATE,
 )
 
 
@@ -162,3 +165,29 @@ class InelsMqttTest(TestCase):
         self.assertIsNotNone(self.mqtt.messages())
         self.assertEqual(len(self.mqtt.messages()), 4)
         self.assertDictEqual(self.mqtt.messages(), dictionary)
+
+    def test_subscribe_listenres(self) -> None:
+        """Test listerner subscription."""
+        def dummy_callback(prm) -> Any:
+            """Dummy callback function"""
+            return prm
+
+        self.mqtt.subscribe_listener(TEST_BUTTON_RFGB_40_TOPIC_STATE, dummy_callback)
+        self.mqtt.subscribe_listener(TEST_CLIMATE_RFATV_2_TOPIC_STATE, dummy_callback)
+
+        self.assertEqual(2, len(self.mqtt.list_of_listeners))
+
+    def test_unsubscribe_listers(self) -> None:
+        """Test unsubscribe all listenres."""
+        def dummy_callback(prm) -> Any:
+            """Dummy callback function"""
+            return prm
+
+        self.mqtt.subscribe_listener(TEST_BUTTON_RFGB_40_TOPIC_STATE, dummy_callback)
+        self.mqtt.subscribe_listener(TEST_CLIMATE_RFATV_2_TOPIC_STATE, dummy_callback)
+
+        self.assertEqual(2, len(self.mqtt.list_of_listeners))
+
+        self.mqtt.unsubscribe_listeners()
+
+        self.assertEqual(0, len(self.mqtt.list_of_listeners))

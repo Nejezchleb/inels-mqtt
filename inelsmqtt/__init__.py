@@ -116,7 +116,7 @@ class InelsMqtt:
     @property
     def list_of_listeners(self) -> dict[str, Callable[[Any], Any]]:
         """List of listeners."""
-        return self.__listeners;
+        return self.__listeners
 
     def is_subscribed(self, topic) -> bool:
         """Get info if the topic is subscribed in device

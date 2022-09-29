@@ -168,6 +168,7 @@ class InelsMqttTest(TestCase):
 
     def test_subscribe_listenres(self) -> None:
         """Test listerner subscription."""
+
         def dummy_callback(prm) -> Any:
             """Dummy callback function"""
             return prm
@@ -179,6 +180,7 @@ class InelsMqttTest(TestCase):
 
     def test_unsubscribe_listers(self) -> None:
         """Test unsubscribe all listenres."""
+
         def dummy_callback(prm) -> Any:
             """Dummy callback function"""
             return prm

@@ -200,7 +200,7 @@ class InelsMqtt:
             userdata (Any): users data
             reason_code (number): reason code
         """
-        _LOGGER.info("Disconnecting reason [%s]", reason_code)
+        _LOGGER.info("%s - disconnecting reason [%s]", self.__host, reason_code)
 
         for item in self.__is_subscribed_list.keys():
             self.__is_subscribed_list[item] = False
@@ -276,7 +276,6 @@ class InelsMqtt:
             mid (_type_): MID
         """
         self.__published = True
-        _LOGGER.info("Published: %s", mid)
 
     def subscribe(self, topic, qos=0, options=None, properties=None) -> Any:
         """Subscribe to selected topic. Will connect, set all

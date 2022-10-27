@@ -17,6 +17,7 @@ from inelsmqtt.const import (
     STATE_CLOSED,
     STATE_OPEN,
     STOP_UP,
+    SWITCH,
     TEMP_IN,
     TEMP_OUT,
     DEVICE_TYPE_DICT,
@@ -40,6 +41,7 @@ from inelsmqtt.const import (
     CLIMATE,
     BUTTON,
     RFGB_40,
+    RFSTI_11B,
 )
 
 from tests.const import (
@@ -60,6 +62,10 @@ from tests.const import (
     TEST_SENSOR_TOPIC_STATE,
     TEST_AVAILABILITY_OFF,
     TEST_AVAILABILITY_ON,
+    TEST_SWITCH_WITH_TEMP_STATE_OFF_VALUE,
+    TEST_SWITCH_WITH_TEMP_STATE_ON_VALUE,
+    TEST_SWITCH_WITH_TEMP_TOPIC_CONNECTED,
+    TEST_SWITCH_WITH_TEMP_TOPIC_STATE,
     TEST_TEMPERATURE_DATA,
     TEST_SWITICH_TOPIC_CONNECTED,
     TEST_SWITCH_TOPIC_STATE,
@@ -119,6 +125,10 @@ class DeviceTest(TestCase):
         )
         self.button = Device(InelsMqtt(config), TEST_BUTTON_RFGB_40_TOPIC_STATE, BUTTON)
 
+        self.switch_with_temp = Device(
+            InelsMqtt(config), TEST_SWITCH_WITH_TEMP_TOPIC_STATE, "Switch"
+        )
+
     def tearDown(self) -> None:
         """Destroy all instances and stop patches"""
         self.switch = None
@@ -127,6 +137,7 @@ class DeviceTest(TestCase):
         self.shutter = None
         self.valve = None
         self.button = None
+        self.switch_with_temp = None
 
     def test_initialize_device(self) -> None:
         """Test initialization of device object"""
@@ -402,3 +413,30 @@ class DeviceTest(TestCase):
         self.assertEqual(self.button.device_type, BUTTON)
         self.assertEqual(self.button.inels_type, RFGB_40)
         self.assertTrue(self.button.state)
+
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
+    def test_device_switch_with_temp(self, mock_message) -> None:
+        """Test switch with temperature."""
+        mock_message.return_value = {
+            TEST_SWITCH_WITH_TEMP_TOPIC_CONNECTED: TEST_AVAILABILITY_ON,
+            TEST_SWITCH_WITH_TEMP_TOPIC_STATE: TEST_SWITCH_WITH_TEMP_STATE_ON_VALUE,
+        }
+
+        self.switch_with_temp.get_value()
+
+        self.assertTrue(self.switch_with_temp.is_available)
+        self.assertEqual(self.switch_with_temp.device_type, SWITCH)
+        self.assertEqual(self.switch_with_temp.inels_type, RFSTI_11B)
+        self.assertTrue(self.switch_with_temp.state.on)
+        self.assertIsNotNone(self.switch_with_temp.state.temperature)
+        self.assertEqual(self.switch_with_temp.state.temperature, 24.5)
+
+        mock_message.return_value = {
+            TEST_SWITCH_WITH_TEMP_TOPIC_CONNECTED: TEST_AVAILABILITY_ON,
+            TEST_SWITCH_WITH_TEMP_TOPIC_STATE: TEST_SWITCH_WITH_TEMP_STATE_OFF_VALUE,
+        }
+
+        self.switch_with_temp.get_value()
+
+        self.assertFalse(self.switch_with_temp.state.on)
+        self.assertEqual(self.switch_with_temp.state.temperature, 21.0)

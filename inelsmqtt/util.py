@@ -17,12 +17,14 @@ from .const import (
     BUTTON_TYPE_19_DATA,
     BUTTON_DEVICE_AMOUNT,
     BUTTON_NUMBER,
+    DEVICE_TYPE_07_DATA,
     REQUIRED_TEMP,
     RFDAC_71B,
     LIGHT,
     SENSOR,
     RFJA_12,
     RFATV_2,
+    RFSTI_11B,
     SHUTTER_SET,
     SHUTTER_STATE_LIST,
     SHUTTER_STATES,
@@ -36,6 +38,8 @@ from .const import (
     BUTTON,
     STATE,
     IDENTITY,
+    SWITCH_WITH_TEMP_SET,
+    TEMP_OUT,
 )
 
 ConfigType = Dict[str, str]
@@ -75,8 +79,26 @@ class DeviceValue(object):
     def __find_ha_value(self) -> None:
         """Find and crete device value object."""
         if self.__device_type is SWITCH:
-            self.__ha_value = SWITCH_STATE[self.__inels_status_value]
-            self.__inels_set_value = SWITCH_SET[self.__ha_value]
+            if self.__inels_type is RFSTI_11B:
+                state = int(
+                    self.__trim_inels_status_values(DEVICE_TYPE_07_DATA, STATE, ""), 16
+                )
+
+                temp = (
+                    int(
+                        self.__trim_inels_status_values(
+                            DEVICE_TYPE_07_DATA, TEMP_OUT, ""
+                        ),
+                        16,
+                    )
+                    / 100
+                )
+
+                self.__ha_value = new_object(on=(state == 0), temperature=temp)
+                self.__inels_set_value = SWITCH_WITH_TEMP_SET[self.__ha_value.on]
+            else:
+                self.__ha_value = SWITCH_STATE[self.__inels_status_value]
+                self.__inels_set_value = SWITCH_SET[self.__ha_value]
         elif self.__device_type is SENSOR:
             if self.__inels_type is RFTI_10B:
                 self.__ha_value = self.__inels_status_value

@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import Final
 
+DISCOVERY_TIMEOUT_IN_SEC = 5
 
 NAME = "inels-mqtt"
 
@@ -17,8 +18,9 @@ DEVICE_TYPE_DICT = {
     "02": SWITCH,
     "03": COVER,
     "05": LIGHT,
-    "10": SENSOR,
+    "07": SWITCH,
     "09": CLIMATE,
+    "10": SENSOR,
     "19": BUTTON,
 }
 
@@ -29,13 +31,15 @@ RFJA_12 = "RFJA-12"
 RFATV_2 = "RFATV-2"
 RFGB_40 = "RFGB-40"
 RFKEY_40 = "RFKEY-40"
+RFSTI_11B = "RFSTI-11B"
 
 INELS_DEVICE_TYPE_DICT = {
     "02": RFSC_61,
-    "10": RFTI_10B,
-    "05": RFDAC_71B,
     "03": RFJA_12,
+    "05": RFDAC_71B,
+    "07": RFSTI_11B,
     "09": RFATV_2,
+    "10": RFTI_10B,
     "19": RFGB_40,
 }
 
@@ -62,6 +66,7 @@ STOP_UP = "stop_up"
 STOP = "stop"
 STATE = "state"
 IDENTITY = "identity"
+ON = "on"
 
 STATE_OPEN = "open"
 STATE_CLOSED = "closed"
@@ -116,13 +121,18 @@ DEVICE_TYPE_05_HEX_VALUES = {
     "8A\nCF\n": 100,
 }
 
+DEVICE_TYPE_07_DATA = {STATE: [1], TEMP_OUT: [3, 2]}
 DEVICE_TYPE_05_DATA = {RFDAC_71B: [0, 1]}
-
 TEMP_SENSOR_DATA = {BATTERY: [0], TEMP_IN: [2, 1], TEMP_OUT: [4, 3]}
-
 SHUTTER_TYPE_03_DATA = {RFJA_12: [1]}
-
 BUTTON_TYPE_19_DATA = {STATE: [0], IDENTITY: [1]}
+CLIMATE_TYPE_09_DATA = {
+    OPEN_IN_PERCENTAGE: [0],
+    CURRENT_TEMP: [1],
+    BATTERY: [2],
+    REQUIRED_TEMP: [3],
+}
+
 BUTTON_NUMBER = {
     "01": 1,
     "02": 2,
@@ -131,16 +141,8 @@ BUTTON_NUMBER = {
     "16": 5,
     "32": 6,
 }
+
 BUTTON_DEVICE_AMOUNT = {RFGB_40: 4}
-
-CLIMATE_TYPE_09_DATA = {
-    OPEN_IN_PERCENTAGE: [0],
-    CURRENT_TEMP: [1],
-    BATTERY: [2],
-    REQUIRED_TEMP: [3],
-}
-
-DISCOVERY_TIMEOUT_IN_SEC = 5
 
 FRAGMENT_DOMAIN = "fragment_domain"
 FRAGMENT_SERIAL_NUMBER = "fragment_serial_number"
@@ -178,6 +180,14 @@ SWITCH_SET = {
 SWITCH_STATE = {
     SWITCH_ON_STATE: True,
     SWITCH_OFF_STATE: False,
+}
+
+SWITCH_ON_WITH_TEMP_SET = "01\n00\n"
+SWITCH_OFF_WITH_TEMP_SET = "02\n00\n"
+
+SWITCH_WITH_TEMP_SET = {
+    True: SWITCH_ON_WITH_TEMP_SET,
+    False: SWITCH_OFF_WITH_TEMP_SET,
 }
 
 MQTT_TRANSPORTS = {"tcp", "websockets"}

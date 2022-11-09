@@ -49,6 +49,7 @@ INELS_DEVICE_TYPE_DICT = {
 BATTERY = "battery"
 TEMP_IN = "temp_in"
 TEMP_OUT = "temp_out"
+TEMPERATURE = "temperature"
 CURRENT_TEMP = "current_temp"
 REQUIRED_TEMP = "required_temp"
 OPEN_IN_PERCENTAGE = "open_in_percentage"
@@ -135,7 +136,7 @@ CLIMATE_TYPE_09_DATA = {
     BATTERY: [2],
     REQUIRED_TEMP: [3],
 }
-DEVICE_TYPE_12_DATA = {TEMP_IN: [0], BATTERY: [2]}
+DEVICE_TYPE_12_DATA = {TEMPERATURE: [0], BATTERY: [2]}
 
 BUTTON_NUMBER = {
     "01": 1,

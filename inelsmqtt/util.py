@@ -18,13 +18,17 @@ from .const import (
     BUTTON_DEVICE_AMOUNT,
     BUTTON_NUMBER,
     DEVICE_TYPE_07_DATA,
+    DEVICE_TYPE_10_DATA,
+    DEVICE_TYPE_12_DATA,
     REQUIRED_TEMP,
     RFDAC_71B,
     LIGHT,
+    RFTC_10_G,
     SENSOR,
     RFJA_12,
     RFATV_2,
     RFSTI_11B,
+    SENSOR_RFTC_10_G_LOW_BATTERY,
     SHUTTER_SET,
     SHUTTER_STATE_LIST,
     SHUTTER_STATES,
@@ -39,6 +43,7 @@ from .const import (
     STATE,
     IDENTITY,
     SWITCH_WITH_TEMP_SET,
+    TEMP_IN,
     TEMP_OUT,
 )
 
@@ -101,7 +106,42 @@ class DeviceValue(object):
                 self.__inels_set_value = SWITCH_SET[self.__ha_value]
         elif self.__device_type is SENSOR:
             if self.__inels_type is RFTI_10B:
-                self.__ha_value = self.__inels_status_value
+                hex_temp_in = self.__trim_inels_status_values(
+                    DEVICE_TYPE_10_DATA, TEMP_IN, ""
+                )
+                hex_temp_out = self.__trim_inels_status_values(
+                    DEVICE_TYPE_10_DATA, TEMP_OUT, ""
+                )
+                hex_battery = self.__trim_inels_status_values(
+                    DEVICE_TYPE_10_DATA, BATTERY, ""
+                )
+
+                temp_in = int(hex_temp_in, 16) / 100
+                temp_out = int(hex_temp_out, 16) / 100
+                battery_level = 100 if int(hex_battery, 16) == 0 else 0
+
+                self.__ha_value = new_object(
+                    temp_in=temp_in,
+                    temp_out=temp_out,
+                    battery=battery_level,
+                )
+            elif self.__inels_type is RFTC_10_G:
+                hex_temp = self.__trim_inels_status_values(
+                    DEVICE_TYPE_12_DATA, TEMP_IN, ""
+                )
+                hex_battery = self.__trim_inels_status_values(
+                    DEVICE_TYPE_12_DATA, BATTERY, ""
+                )
+
+                temperature = int(hex_temp, 16) * 0.5
+                battery_level = (
+                    0 if hex_battery == SENSOR_RFTC_10_G_LOW_BATTERY else 100
+                )
+
+                self.__ha_value = new_object(
+                    temperature=temperature,
+                    battery=battery_level,
+                )
             else:
                 self.__ha_value = self.__inels_status_value
         elif self.__device_type is LIGHT:

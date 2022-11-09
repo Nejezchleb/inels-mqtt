@@ -29,7 +29,7 @@ from inelsmqtt.const import (
     SWITCH_ON_SET,
     SWITCH_ON_STATE,
     SWITCH_OFF_STATE,
-    TEMP_SENSOR_DATA,
+    DEVICE_TYPE_10_DATA,
     TOPIC_FRAGMENTS,
     MQTT_HOST,
     MQTT_PORT,
@@ -78,6 +78,8 @@ from tests.const import (
     TEST_BUTTON_RFGB_40_TOPIC_STATE,
     TEST_BUTTON_RFGB_40_TOPIC_CONNECTED,
     TEST_BUTTON_RFGB_40_STATE_VALUE,
+    TEST_SENSOR_RFTC_10_G_TOPIC_STATE,
+    TEST_SENSOR_RFTC_10_G_STATE_VALUE,
 )
 
 
@@ -129,6 +131,10 @@ class DeviceTest(TestCase):
             InelsMqtt(config), TEST_SWITCH_WITH_TEMP_TOPIC_STATE, "Switch"
         )
 
+        self.rftc_10_g = Device(
+            InelsMqtt(config), TEST_SENSOR_RFTC_10_G_TOPIC_STATE, "Sensor"
+        )
+
     def tearDown(self) -> None:
         """Destroy all instances and stop patches"""
         self.switch = None
@@ -138,6 +144,7 @@ class DeviceTest(TestCase):
         self.valve = None
         self.button = None
         self.switch_with_temp = None
+        self.rftc_10_g = None
 
     def test_initialize_device(self) -> None:
         """Test initialization of device object"""
@@ -246,33 +253,40 @@ class DeviceTest(TestCase):
         temp_out_decimal_result = 26.7
         batter_decimal_result = 100
 
-        # split by new line and remove last element because is empty
-        data = self.sensor.state.split("\n")[:-1]
+        data = self.sensor.state
 
-        self.assertEqual(len(data), 5)
+        self.assertEqual(temp_in_decimal_result, data.temp_in)
+        self.assertEqual(temp_out_decimal_result, data.temp_out)
+        self.assertEqual(batter_decimal_result, data.battery)
 
-        battery = itemgetter(*TEMP_SENSOR_DATA[BATTERY])(data)
-        temp_in = itemgetter(*TEMP_SENSOR_DATA[TEMP_IN])(data)
-        temp_out = itemgetter(*TEMP_SENSOR_DATA[TEMP_OUT])(data)
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
+    def test_device_rftc_10_g(self, mock_message) -> None:
+        """Test connectivity and data from device type 12."""
+        mock_message.return_value = {
+            TEST_SENSOR_RFTC_10_G_TOPIC_STATE: TEST_SENSOR_RFTC_10_G_STATE_VALUE
+        }
 
-        self.assertEqual(battery, data[0])
-        self.assertEqual("".join(temp_in), f"{data[2]}{data[1]}")
-        self.assertEqual("".join(temp_out), f"{data[4]}{data[3]}")
+        temp = 21.0
+        battery_level = 100
 
-        temp_in_joined = "".join(temp_in)
-        temp_out_joined = "".join(temp_out)
+        data = self.rftc_10_g.state
 
-        temp_in_hex = f"0x{temp_in_joined}"
-        temp_out_hex = f"0x{temp_out_joined}"
-        battery_hex = f"0x{battery}"
+        self.assertEqual(temp, data.temperature)
+        self.assertEqual(battery_level, data.battery)
 
-        temp_in_dec = int(temp_in_hex, 16) / 100
-        temp_out_dec = int(temp_out_hex, 16) / 100
-        battery_dec = 100 if int(battery_hex, 16) == 0 else 0
+        # change state of the topic
+        mock_message.return_value = {
+            TEST_SENSOR_RFTC_10_G_TOPIC_STATE: b"2C\n00\n81\n00\n00\n"
+        }
 
-        self.assertEqual(temp_in_dec, temp_in_decimal_result)
-        self.assertEqual(temp_out_dec, temp_out_decimal_result)
-        self.assertEqual(battery_dec, batter_decimal_result)
+        temp = 22.0
+        battery_level = 0
+
+        self.rftc_10_g.get_value()
+        data = self.rftc_10_g.state
+
+        self.assertEqual(temp, data.temperature)
+        self.assertEqual(battery_level, data.battery)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
     def test_device_dimmable_light_test_values(self, mock_message) -> None:

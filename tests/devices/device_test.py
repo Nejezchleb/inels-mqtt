@@ -259,7 +259,6 @@ class DeviceTest(TestCase):
         self.assertEqual(temp_out_decimal_result, data.temp_out)
         self.assertEqual(batter_decimal_result, data.battery)
 
-
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
     def test_device_rftc_10_g(self, mock_message) -> None:
         """Test connectivity and data from device type 12."""

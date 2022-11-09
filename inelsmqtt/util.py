@@ -45,6 +45,7 @@ from .const import (
     SWITCH_WITH_TEMP_SET,
     TEMP_IN,
     TEMP_OUT,
+    TEMPERATURE,
 )
 
 ConfigType = Dict[str, str]
@@ -127,7 +128,7 @@ class DeviceValue(object):
                 )
             elif self.__inels_type is RFTC_10_G:
                 hex_temp = self.__trim_inels_status_values(
-                    DEVICE_TYPE_12_DATA, TEMP_IN, ""
+                    DEVICE_TYPE_12_DATA, TEMPERATURE, ""
                 )
                 hex_battery = self.__trim_inels_status_values(
                     DEVICE_TYPE_12_DATA, BATTERY, ""

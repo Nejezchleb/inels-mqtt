@@ -1,8 +1,6 @@
 """Unit tests for Device class
     handling device operations
 """
-from operator import itemgetter
-
 from unittest.mock import Mock, patch
 from unittest import TestCase
 from inelsmqtt import InelsMqtt
@@ -18,8 +16,6 @@ from inelsmqtt.const import (
     STATE_OPEN,
     STOP_UP,
     SWITCH,
-    TEMP_IN,
-    TEMP_OUT,
     DEVICE_TYPE_DICT,
     FRAGMENT_DEVICE_TYPE,
     FRAGMENT_DOMAIN,
@@ -29,7 +25,9 @@ from inelsmqtt.const import (
     SWITCH_ON_SET,
     SWITCH_ON_STATE,
     SWITCH_OFF_STATE,
-    DEVICE_TYPE_10_DATA,
+    TEMP_IN,
+    TEMP_OUT,
+    TEMPERATURE,
     TOPIC_FRAGMENTS,
     MQTT_HOST,
     MQTT_PORT,
@@ -245,7 +243,7 @@ class DeviceTest(TestCase):
         self.assertFalse(is_avilable)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
-    def test_temperature_parsing(self, mock_message) -> None:
+    def test_device_rfti_10b(self, mock_message) -> None:
         """Test parsing teperature data to relevant format."""
         mock_message.return_value = {TEST_SENSOR_TOPIC_STATE: TEST_TEMPERATURE_DATA}
 
@@ -259,8 +257,12 @@ class DeviceTest(TestCase):
         self.assertEqual(temp_out_decimal_result, data.temp_out)
         self.assertEqual(batter_decimal_result, data.battery)
 
+        self.assertIsNotNone(self.sensor.features)
+        self.assertEqual(len(self.sensor.features), 3)
+        self.assertEqual(self.sensor.features, [TEMP_IN, TEMP_OUT, BATTERY])
+
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
-    def test_device_rftc_10_g(self, mock_message) -> None:
+    def test_device_rftc_10g(self, mock_message) -> None:
         """Test connectivity and data from device type 12."""
         mock_message.return_value = {
             TEST_SENSOR_RFTC_10_G_TOPIC_STATE: TEST_SENSOR_RFTC_10_G_STATE_VALUE
@@ -287,6 +289,10 @@ class DeviceTest(TestCase):
 
         self.assertEqual(temp, data.temperature)
         self.assertEqual(battery_level, data.battery)
+
+        self.assertIsNotNone(self.rftc_10_g.features)
+        self.assertEqual(len(self.rftc_10_g.features), 2)
+        self.assertEqual(self.rftc_10_g.features, [TEMPERATURE, BATTERY])
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
     def test_device_dimmable_light_test_values(self, mock_message) -> None:

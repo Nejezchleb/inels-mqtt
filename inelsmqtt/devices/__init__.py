@@ -7,12 +7,18 @@ from typing import Any
 from inelsmqtt.util import DeviceValue
 from inelsmqtt import InelsMqtt
 from inelsmqtt.const import (
+    BATTERY,
     DEVICE_TYPE_DICT,
     FRAGMENT_DOMAIN,
     INELS_DEVICE_TYPE_DICT,
     MANUFACTURER,
+    RFTC_10_G,
+    RFTI_10B,
     SENSOR,
     BUTTON,
+    TEMP_IN,
+    TEMP_OUT,
+    TEMPERATURE,
     TOPIC_FRAGMENTS,
     FRAGMENT_DEVICE_TYPE,
     FRAGMENT_SERIAL_NUMBER,
@@ -68,6 +74,7 @@ class Device(object):
         self.__domain = fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]
         self.__state: Any = None
         self.__values: DeviceValue = None
+        self.__features: dict[str] = self.__set_features(self.__inels_type)
 
         # subscribe availability
         self.__mqtt.subscribe(self.__connected_topic, 0, None, None)
@@ -194,6 +201,11 @@ class Device(object):
         """Instnace of broker."""
         return self.__mqtt
 
+    @property
+    def features(self) -> dict[str]:
+        """List of features of device."""
+        return self.__features
+
     def update_value(self, new_value: Any) -> DeviceValue:
         """Update value after broker change it."""
         return self.__get_value(new_value)
@@ -210,6 +222,17 @@ class Device(object):
         self.__values = dev_value
 
         return dev_value
+
+    def __set_features(self, inels_type: str) -> dict[str]:
+        """Set device features."""
+        features: dict[str] = None
+
+        if inels_type == RFTI_10B:
+            features = [TEMP_IN, TEMP_OUT, BATTERY]
+        elif inels_type == RFTC_10_G:
+            features = [TEMPERATURE, BATTERY]
+
+        return features
 
     def get_value(self) -> DeviceValue:
         """Get value from inels

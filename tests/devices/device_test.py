@@ -233,7 +233,7 @@ class DeviceTest(TestCase):
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
     def test_is_not_available(self, mock_messages) -> None:
-        """Test of the dvice availability wit result false."""
+        """Test of the device availability wit result false."""
 
         mock_messages.return_value = {
             TEST_SWITICH_TOPIC_CONNECTED: TEST_AVAILABILITY_OFF
@@ -241,6 +241,18 @@ class DeviceTest(TestCase):
         is_avilable = self.switch.is_available
 
         self.assertFalse(is_avilable)
+
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
+    def test_connected_topic_is_not_available(self, mock_messages) -> None:
+        """Test handling is_available fnc when connected topic is not available."""
+
+        mock_messages.return_value = {
+            TEST_SWITCH_WITH_TEMP_TOPIC_STATE: TEST_SWITCH_WITH_TEMP_STATE_OFF_VALUE
+        }
+
+        is_available = self.switch.is_available
+
+        self.assertFalse(is_available)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
     def test_device_rfti_10b(self, mock_message) -> None:

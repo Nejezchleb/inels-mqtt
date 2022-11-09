@@ -140,8 +140,10 @@ class Device(object):
         Returns:
             bool: True/False
         """
-        val = self.__mqtt.messages()[self._Device__connected_topic]
-        if isinstance(val, (bytes, bytearray)):
+        val = self.__mqtt.messages().get(self._Device__connected_topic)
+        if val is None:
+            val = "off\n"
+        elif isinstance(val, (bytes, bytearray)):
             val = val.decode()
 
         return DEVICE_CONNCTED.get(val)

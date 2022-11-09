@@ -2,7 +2,7 @@
 import logging
 import json
 
-from typing import Any
+from typing import Any, Callable
 
 from inelsmqtt.util import DeviceValue
 from inelsmqtt import InelsMqtt
@@ -14,6 +14,7 @@ from inelsmqtt.const import (
     MANUFACTURER,
     RFTC_10_G,
     RFTI_10B,
+    RFSTI_11B,
     SENSOR,
     BUTTON,
     TEMP_IN,
@@ -75,9 +76,11 @@ class Device(object):
         self.__state: Any = None
         self.__values: DeviceValue = None
         self.__features: dict[str] = self.__set_features(self.__inels_type)
+        self.__listeners = dict[str, Callable[[Any], Any]]()
 
         # subscribe availability
         self.__mqtt.subscribe(self.__connected_topic, 0, None, None)
+        self.__mqtt.subscribe_listener(state_topic, self._callback)
 
     @property
     def unique_id(self) -> str:
@@ -208,6 +211,10 @@ class Device(object):
         """List of features of device."""
         return self.__features
 
+    def subscribe_listerner(self, topic: str, fnc: Callable[[Any], Any]) -> None:
+        """Append new item into the datachage listener."""
+        self.__listeners[topic] = fnc
+
     def update_value(self, new_value: Any) -> DeviceValue:
         """Update value after broker change it."""
         return self.__get_value(new_value)
@@ -233,8 +240,17 @@ class Device(object):
             features = [TEMP_IN, TEMP_OUT, BATTERY]
         elif inels_type == RFTC_10_G:
             features = [TEMPERATURE, BATTERY]
+        elif inels_type == RFSTI_11B:
+            features = [TEMPERATURE]
 
         return features
+
+    def _callback(self, new_value: Any) -> None:
+        """Get value from mqtt when arrived."""
+        self.update_value(new_value)
+
+        for listener in self.__listeners:
+            listener(new_value)
 
     def get_value(self) -> DeviceValue:
         """Get value from inels

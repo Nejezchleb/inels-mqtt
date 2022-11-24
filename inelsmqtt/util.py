@@ -207,10 +207,7 @@ class DeviceValue(object):
             if self.__inels_type == Element.RFSTI_11B:
                 self.__inels_set_value = SWITCH_WITH_TEMP_SET.get(self.__ha_value.on)
             else:
-                self.__inels_status_value = self.__find_keys_by_value(
-                    SWITCH_STATE, self.__ha_value, self.__last_value
-                )
-                self.__inels_set_value = SWITCH_SET.get(self.__ha_value)
+                self.__inels_set_value = SWITCH_SET.get(self.__ha_value.on)
         elif self.__device_type is Platform.LIGHT:
             if self.__inels_type is Element.RFDAC_71B:
                 self.__inels_status_value = self.__find_keys_by_value(

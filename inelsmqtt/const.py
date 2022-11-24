@@ -6,6 +6,8 @@ from enum import Enum
 DISCOVERY_TIMEOUT_IN_SEC = 5
 
 NAME = "inels-mqtt"
+KEY = "key"
+FEATURES = "features"
 
 
 class Platform(Enum):
@@ -58,6 +60,7 @@ INELS_DEVICE_TYPE_DICT = {
 
 BATTERY = "battery"
 TEMP_IN = "temp_in"
+BRIGHTNESS = "brightness"
 TEMP_OUT = "temp_out"
 TEMPERATURE = "temperature"
 CURRENT_TEMP = "current_temp"

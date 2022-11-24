@@ -74,7 +74,7 @@ class Rfdac_71b(DeviceSetup, TestCase):
         self.assertEqual(i.domain, self.domain)
 
         # RFSTI-11B has one feature [Temperature]
-        self.assertIsNone(i.features)
+        self.assertIsNotNone(i.features)
 
         # listener registered in mqtt borker
         self.assertEqual(len(i.mqtt.list_of_listeners), 1)
@@ -123,7 +123,8 @@ class Rfdac_71b(DeviceSetup, TestCase):
     def test_features(self) -> None:
         """Test list of features."""
         # this device does not have any features
-        self.assertIsNone(self.instance.features)
+        self.assertIsNotNone(self.instance.features)
+        self.assertEqual(len(self.instance.features), 1)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.publish")
     def test_set_ha_value(self, mock_publish) -> None:

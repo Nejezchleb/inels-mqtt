@@ -1,13 +1,16 @@
-"""Class handle specific platform light."""
+"""Class handle specific platform sensor."""
 from inelsmqtt import InelsMqtt
 from inelsmqtt.devices import Device
-from inelsmqtt.const import Element, BRIGHTNESS
+from inelsmqtt.const import Element, TEMPERATURE, BATTERY, TEMP_IN, TEMP_OUT
 
-LIST_OF_FEATURES = {Element.RFDAC_71B.value: [BRIGHTNESS]}
+LIST_OF_FEATURES = {
+    Element.RFTC_10_G.value: [TEMPERATURE, BATTERY],
+    Element.RFTI_10B.value: [TEMP_IN, TEMP_OUT, BATTERY],
+}
 
 
-class InelsLight(Device):
-    """Carry light stuff
+class InelsSensor(Device):
+    """Carry sensor stuff
 
     Args:
         Device (_type_): it base class for all platforms
@@ -22,8 +25,3 @@ class InelsLight(Device):
         """Initit inels switch class"""
         super().__init__(mqtt=mqtt, state_topic=state_topic, title=title)
         self._set_features(LIST_OF_FEATURES.get(self.inels_type.value))
-
-    def set_ha_value(self, value: bool) -> bool:
-        """Convert set value to the proper light object."""
-        # new object passing into the device set func Device value object
-        return super().set_ha_value(value)

@@ -8,14 +8,10 @@ from inelsmqtt.util import DeviceValue
 from inelsmqtt import InelsMqtt
 from inelsmqtt.const import Platform, Element
 from inelsmqtt.const import (
-    BATTERY,
     DEVICE_TYPE_DICT,
     FRAGMENT_DOMAIN,
     INELS_DEVICE_TYPE_DICT,
     MANUFACTURER,
-    TEMP_IN,
-    TEMP_OUT,
-    TEMPERATURE,
     TOPIC_FRAGMENTS,
     FRAGMENT_DEVICE_TYPE,
     FRAGMENT_SERIAL_NUMBER,
@@ -74,7 +70,7 @@ class Device(object):
         self.__domain = fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]
         self.__state: Any = None
         self.__values: DeviceValue = None
-        self.__features: dict[str] = self.__set_features(self.__inels_type)
+        self.__features: dict[str] = None
         self.__listeners = dict[str, Callable[[Any], Any]]()
 
         # subscribe availability
@@ -245,18 +241,9 @@ class Device(object):
 
         return dev_value
 
-    def __set_features(self, inels_type: str) -> dict[str]:
-        """Set device features."""
-        features: dict[str] = None
-
-        if inels_type == Element.RFTI_10B:
-            features = [TEMP_IN, TEMP_OUT, BATTERY]
-        elif inels_type == Element.RFTC_10_G:
-            features = [TEMPERATURE, BATTERY]
-        elif inels_type == Element.RFSTI_11B:
-            features = [TEMPERATURE]
-
-        return features
+    def _set_features(self, features: dict[str]) -> dict[str]:
+        """Set features to the device."""
+        self.__features = features
 
     def _callback(self, new_value: Any) -> None:
         """Get value from mqtt when arrived."""

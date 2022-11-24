@@ -4,6 +4,7 @@
 from unittest.mock import Mock, patch
 from unittest import TestCase
 from inelsmqtt import InelsMqtt
+from inelsmqtt.devices import light, switch, sensor
 from inelsmqtt.util import DeviceValue
 from inelsmqtt.devices import Device, DeviceInfo
 from inelsmqtt.const import Platform, Element
@@ -107,9 +108,15 @@ class DeviceTest(TestCase):
             MQTT_PROTOCOL: PROTO_5,
         }
 
-        self.switch = Device(InelsMqtt(config), TEST_SWITCH_TOPIC_STATE, "Switch")
-        self.sensor = Device(InelsMqtt(config), TEST_SENSOR_TOPIC_STATE, "Sensor")
-        self.light = Device(InelsMqtt(config), TEST_LIGHT_DIMMABLE_TOPIC_STATE, "Light")
+        self.switch = switch.InelsSwitch(
+            InelsMqtt(config), TEST_SWITCH_TOPIC_STATE, "Switch"
+        )
+        self.sensor = sensor.InelsSensor(
+            InelsMqtt(config), TEST_SENSOR_TOPIC_STATE, "Sensor"
+        )
+        self.light = light.InelsLight(
+            InelsMqtt(config), TEST_LIGHT_DIMMABLE_TOPIC_STATE, "Light"
+        )
         self.shutter = Device(
             InelsMqtt(config), TEST_COVER_RFJA_12_TOPIC_STATE, "Shutter"
         )
@@ -120,11 +127,11 @@ class DeviceTest(TestCase):
             InelsMqtt(config), TEST_BUTTON_RFGB_40_TOPIC_STATE, Platform.BUTTON
         )
 
-        self.switch_with_temp = Device(
+        self.switch_with_temp = switch.InelsSwitch(
             InelsMqtt(config), TEST_SWITCH_WITH_TEMP_TOPIC_STATE, "Switch"
         )
 
-        self.rftc_10_g = Device(
+        self.rftc_10_g = sensor.InelsSensor(
             InelsMqtt(config), TEST_SENSOR_RFTC_10_G_TOPIC_STATE, "Sensor"
         )
 

@@ -6,17 +6,13 @@ from typing import Any, Callable
 
 from inelsmqtt.util import DeviceValue
 from inelsmqtt import InelsMqtt
+from inelsmqtt.const import Platform, Element
 from inelsmqtt.const import (
     BATTERY,
     DEVICE_TYPE_DICT,
     FRAGMENT_DOMAIN,
     INELS_DEVICE_TYPE_DICT,
     MANUFACTURER,
-    RFTC_10_G,
-    RFTI_10B,
-    RFSTI_11B,
-    SENSOR,
-    BUTTON,
     TEMP_IN,
     TEMP_OUT,
     TEMPERATURE,
@@ -56,10 +52,10 @@ class Device(object):
         fragments = state_topic.split("/")
 
         self.__mqtt = mqtt
-        self.__device_type = DEVICE_TYPE_DICT[
+        self.__device_type: Platform = DEVICE_TYPE_DICT[
             fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]
         ]
-        self.__inels_type = INELS_DEVICE_TYPE_DICT[
+        self.__inels_type: Element = INELS_DEVICE_TYPE_DICT[
             fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]
         ]
         self.__unique_id = fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]
@@ -67,7 +63,10 @@ class Device(object):
         self.__state_topic = state_topic
         self.__set_topic = None
 
-        if self.__device_type is not SENSOR and self.__device_type is not BUTTON:
+        if (
+            self.__device_type is not Platform.SENSOR
+            and self.__device_type is not Platform.BUTTON
+        ):
             self.__set_topic = f"{fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/set/{fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"  # noqa: E501
 
         self.__connected_topic = f"{fragments[TOPIC_FRAGMENTS[FRAGMENT_DOMAIN]]}/connected/{fragments[TOPIC_FRAGMENTS[FRAGMENT_SERIAL_NUMBER]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_DEVICE_TYPE]]}/{fragments[TOPIC_FRAGMENTS[FRAGMENT_UNIQUE_ID]]}"  # noqa: E501
@@ -101,7 +100,12 @@ class Device(object):
         return self.__mqtt.is_subscribed(self.__state_topic)
 
     @property
-    def inels_type(self) -> str:
+    def listeners(self) -> dict[str, Callable[[Any], Any]]:
+        """List of registered listeners on device"""
+        return self.__listeners
+
+    @property
+    def inels_type(self) -> Element:
         """Get inels type of the device
 
         Returns:
@@ -110,11 +114,11 @@ class Device(object):
         return self.__inels_type
 
     @property
-    def device_type(self) -> str:
+    def device_type(self) -> Platform:
         """Get type of the device
 
         Returns:
-            str: Type
+            Platform: Type
         """
         return self.__device_type
 
@@ -168,6 +172,15 @@ class Device(object):
             str: string of the status topic
         """
         return self.__state_topic
+
+    @property
+    def connected_topic(self) -> str:
+        """Connected topic
+
+        Returns:
+            str: string of the connected topic
+        """
+        return self.__connected_topic
 
     @property
     def domain(self) -> str:
@@ -236,11 +249,11 @@ class Device(object):
         """Set device features."""
         features: dict[str] = None
 
-        if inels_type == RFTI_10B:
+        if inels_type == Element.RFTI_10B:
             features = [TEMP_IN, TEMP_OUT, BATTERY]
-        elif inels_type == RFTC_10_G:
+        elif inels_type == Element.RFTC_10_G:
             features = [TEMPERATURE, BATTERY]
-        elif inels_type == RFSTI_11B:
+        elif inels_type == Element.RFSTI_11B:
             features = [TEMPERATURE]
 
         return features
@@ -298,7 +311,7 @@ class Device(object):
         """
         info = {
             "name": self.__title,
-            "device_type": self.__device_type,
+            "device_type": self.__device_type.value,
             "id": self.__unique_id,
             "via_device": self.__parent_id,
         }

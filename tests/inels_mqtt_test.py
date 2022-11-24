@@ -6,28 +6,19 @@ from unittest.mock import patch, Mock
 from unittest import TestCase
 
 from inelsmqtt import InelsMqtt
-from inelsmqtt.const import (
-    MQTT_HOST,
-    MQTT_PASSWORD,
-    MQTT_PORT,
-    MQTT_USERNAME,
-    PROTO_5,
-    MQTT_PROTOCOL,
-)
 
 from tests.const import (
     TEST_INELS_MQTT_CLASS_NAMESPACE,
     TEST_INELS_MQTT_NAMESPACE,
     TEST_HOST,
     TEST_PORT,
-    TEST_USER_NAME,
-    TEST_PASSWORD,
     TEST_CLIMATE_RFATV_2_TOPIC_STATE,
     TEST_BUTTON_RFGB_40_TOPIC_STATE,
 )
+from tests.devices.setup_test import DeviceSetup
 
 
-class InelsMqttTest(TestCase):
+class InelsMqttTest(DeviceSetup, TestCase):
     """Testing class for InelsMqtt."""
 
     def setUp(self) -> None:
@@ -36,27 +27,8 @@ class InelsMqttTest(TestCase):
         Returns:
             InelsMqttTest: self instance of the testing class
         """
-
-        # mocking mqtt broker client
-        self.patches = [
-            patch(f"{TEST_INELS_MQTT_NAMESPACE}.mqtt.Client", return_value=Mock()),
-            patch(
-                f"{TEST_INELS_MQTT_NAMESPACE}.mqtt.Client.username_pw_set",
-                return_value=Mock(),
-            ),
-            patch(f"{TEST_INELS_MQTT_NAMESPACE}._LOGGER", return_value=Mock()),
-        ]
-
-        for item in self.patches:
+        for item in DeviceSetup.patches:
             item.start()
-
-        self.config = {
-            MQTT_HOST: TEST_HOST,
-            MQTT_PORT: TEST_PORT,
-            MQTT_USERNAME: TEST_USER_NAME,
-            MQTT_PASSWORD: TEST_PASSWORD,
-            MQTT_PROTOCOL: PROTO_5,
-        }
 
         self.mqtt = InelsMqtt(self.config)
 
@@ -66,7 +38,6 @@ class InelsMqttTest(TestCase):
         Returns:
             InelsMqttTest: self instance of the testing class
         """
-        patch.stopall()
         self.patches = None
 
     def test_instance_initialization(self) -> None:
@@ -128,18 +99,17 @@ class InelsMqttTest(TestCase):
         devices = self.mqtt.discovery_all()
         self.assertEqual(len(devices), 3)
 
-    @patch(
-        f"{TEST_INELS_MQTT_CLASS_NAMESPACE}._InelsMqtt__connect", return_value=Mock()
-    )
-    @patch(f"{TEST_INELS_MQTT_NAMESPACE}.mqtt.Client.subscribe", return_value=Mock())
-    def test_subscribe_message(self, mock_connect, mock_broker_subscribe) -> None:
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.subscribe")
+    def test_subscribe_message(self, mock_broker_subscribe) -> None:
         """Testing subscribtion of the message from the broker."""
+
+        mock_broker_subscribe.return_value = "adfadfadf"
 
         topic = "inels/status/45464654/02/457544"
         msg = type(
             "msg",
             (object,),
-            {"topic": topic, "payload": "adfadfadf"},
+            {"topic": topic, "payload": mock_broker_subscribe.return_value},
         )
 
         self.mqtt._InelsMqtt__on_message(  # pylint: disable=protected-access
@@ -150,21 +120,20 @@ class InelsMqttTest(TestCase):
 
         self.assertEqual(msg.payload, payload)
 
-    def test_message_property(self) -> None:
+    @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
+    def test_message_property(self, mock_messages) -> None:
         """Test if message property returns right data."""
-        dictionary = {
+
+        mock_messages.return_value = {
             "inels/status/555555/02/3423452435": "first",
             "inels/status/555555/02/3424524222": "second",
             "inels/status/555555/03/452435234": "third",
             "inels/status/222222/02/85034495": "fourth",
         }
 
-        # fill up __message prop
-        self.mqtt._InelsMqtt__messages = dictionary  # pylint: disable=protected-access
-
         self.assertIsNotNone(self.mqtt.messages())
         self.assertEqual(len(self.mqtt.messages()), 4)
-        self.assertDictEqual(self.mqtt.messages(), dictionary)
+        self.assertDictEqual(self.mqtt.messages(), mock_messages.return_value)
 
     def test_subscribe_listenres(self) -> None:
         """Test listerner subscription."""

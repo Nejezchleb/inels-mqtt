@@ -6,11 +6,11 @@ from typing import Any, Dict
 
 from inelsmqtt.mqtt_client import GetMessageType
 
+from .const import Platform, Element
 from .const import (
     ANALOG_REGULATOR_SET_BYTES,
     BATTERY,
     CLIMATE_TYPE_09_DATA,
-    COVER,
     CURRENT_TEMP,
     DEVICE_TYPE_05_DATA,
     DEVICE_TYPE_05_HEX_VALUES,
@@ -21,25 +21,13 @@ from .const import (
     DEVICE_TYPE_10_DATA,
     DEVICE_TYPE_12_DATA,
     REQUIRED_TEMP,
-    RFDAC_71B,
-    LIGHT,
-    RFTC_10_G,
-    SENSOR,
-    RFJA_12,
-    RFATV_2,
-    RFSTI_11B,
     SENSOR_RFTC_10_G_LOW_BATTERY,
     SHUTTER_SET,
     SHUTTER_STATE_LIST,
     SHUTTER_STATES,
-    SWITCH,
     SWITCH_SET,
     SWITCH_STATE,
-    RFTI_10B,
-    CLIMATE,
     OPEN_IN_PERCENTAGE,
-    RFGB_40,
-    BUTTON,
     STATE,
     IDENTITY,
     SWITCH_WITH_TEMP_SET,
@@ -62,7 +50,7 @@ class DeviceValue(object):
 
     def __init__(
         self,
-        device_type: str,
+        device_type: Platform,
         inels_type: str,
         inels_value: str = None,
         ha_value: Any = None,
@@ -84,8 +72,8 @@ class DeviceValue(object):
 
     def __find_ha_value(self) -> None:
         """Find and crete device value object."""
-        if self.__device_type is SWITCH:
-            if self.__inels_type is RFSTI_11B:
+        if self.__device_type is Platform.SWITCH:
+            if self.__inels_type is Element.RFSTI_11B:
                 state = int(
                     self.__trim_inels_status_values(DEVICE_TYPE_07_DATA, STATE, ""), 16
                 )
@@ -100,13 +88,13 @@ class DeviceValue(object):
                     / 100
                 )
 
-                self.__ha_value = new_object(on=(state == 0), temperature=temp)
+                self.__ha_value = new_object(on=(state == 1), temperature=temp)
                 self.__inels_set_value = SWITCH_WITH_TEMP_SET[self.__ha_value.on]
             else:
                 self.__ha_value = SWITCH_STATE[self.__inels_status_value]
                 self.__inels_set_value = SWITCH_SET[self.__ha_value]
-        elif self.__device_type is SENSOR:
-            if self.__inels_type is RFTI_10B:
+        elif self.__device_type is Platform.SENSOR:
+            if self.__inels_type is Element.RFTI_10B:
                 hex_temp_in = self.__trim_inels_status_values(
                     DEVICE_TYPE_10_DATA, TEMP_IN, ""
                 )
@@ -126,7 +114,7 @@ class DeviceValue(object):
                     temp_out=temp_out,
                     battery=battery_level,
                 )
-            elif self.__inels_type is RFTC_10_G:
+            elif self.__inels_type is Element.RFTC_10_G:
                 hex_temp = self.__trim_inels_status_values(
                     DEVICE_TYPE_12_DATA, TEMPERATURE, ""
                 )
@@ -145,25 +133,23 @@ class DeviceValue(object):
                 )
             else:
                 self.__ha_value = self.__inels_status_value
-        elif self.__device_type is LIGHT:
-            if self.__inels_type is RFDAC_71B:
+        elif self.__device_type is Platform.LIGHT:
+            if self.__inels_type is Element.RFDAC_71B:
                 self.__ha_value = DEVICE_TYPE_05_HEX_VALUES[self.__inels_status_value]
 
                 trimmed_data = self.__trim_inels_status_values(
-                    DEVICE_TYPE_05_DATA, RFDAC_71B, " "
+                    DEVICE_TYPE_05_DATA, Element.RFDAC_71B.value, " "
                 )
-                self.__inels_set_value = (
-                    f"{ANALOG_REGULATOR_SET_BYTES[RFDAC_71B]} {trimmed_data}"
-                )
+                self.__inels_set_value = f"{ANALOG_REGULATOR_SET_BYTES[Element.RFDAC_71B.value]} {trimmed_data}"  # noqa: E501
             else:
                 self.__ha_value = self.__inels_status_value
-        elif self.__device_type is COVER:
+        elif self.__device_type is Platform.COVER:
             ha_val = SHUTTER_STATES.get(self.__inels_status_value)
 
             self.__ha_value = ha_val if ha_val is not None else self.__last_value
             self.__inels_set_value = SHUTTER_SET[self.__ha_value]
-        elif self.__device_type is CLIMATE:
-            if self.__inels_type is RFATV_2:
+        elif self.__device_type is Platform.CLIMATE:
+            if self.__inels_type is Element.RFATV_2:
                 temp_current_hex = self.__trim_inels_status_values(
                     CLIMATE_TYPE_09_DATA, CURRENT_TEMP, ""
                 )
@@ -188,8 +174,8 @@ class DeviceValue(object):
                 )
             else:
                 self.__ha_value = self.__inels_status_value
-        elif self.__device_type is BUTTON:
-            if self.__inels_type is RFGB_40:
+        elif self.__device_type is Platform.BUTTON:
+            if self.__inels_type is Element.RFGB_40:
                 state = self.__trim_inels_status_values(BUTTON_TYPE_19_DATA, STATE, "")
                 state_hex_str = f"0x{state}"
                 state_bin_str = f"{int(state_hex_str, 16):0>8b}"
@@ -217,27 +203,28 @@ class DeviceValue(object):
 
     def __find_inels_value(self) -> None:
         """Find inels mqtt value for specific device."""
-        if self.__device_type is SWITCH:
-            self.__inels_status_value = self.__find_keys_by_value(
-                SWITCH_STATE, self.__ha_value, self.__last_value
-            )
-            self.__inels_set_value = SWITCH_SET.get(self.__ha_value)
-        elif self.__device_type is LIGHT:
-            if self.__inels_type is RFDAC_71B:
+        if self.__device_type is Platform.SWITCH:
+            if self.__inels_type == Element.RFSTI_11B:
+                self.__inels_set_value = SWITCH_WITH_TEMP_SET.get(self.__ha_value.on)
+            else:
+                self.__inels_status_value = self.__find_keys_by_value(
+                    SWITCH_STATE, self.__ha_value, self.__last_value
+                )
+                self.__inels_set_value = SWITCH_SET.get(self.__ha_value)
+        elif self.__device_type is Platform.LIGHT:
+            if self.__inels_type is Element.RFDAC_71B:
                 self.__inels_status_value = self.__find_keys_by_value(
                     DEVICE_TYPE_05_HEX_VALUES,
                     round(self.__ha_value, -1),
                     self.__last_value,
                 )
                 trimmed_data = self.__trim_inels_status_values(
-                    DEVICE_TYPE_05_DATA, RFDAC_71B, " "
+                    DEVICE_TYPE_05_DATA, Element.RFDAC_71B.value, " "
                 )
-                self.__inels_set_value = (
-                    f"{ANALOG_REGULATOR_SET_BYTES[RFDAC_71B]} {trimmed_data}"
-                )
+                self.__inels_set_value = f"{ANALOG_REGULATOR_SET_BYTES[Element.RFDAC_71B.value]} {trimmed_data}"  # noqa: E501
                 self.__ha_value = DEVICE_TYPE_05_HEX_VALUES[self.__inels_status_value]
-        elif self.__device_type is COVER:
-            if self.__inels_type is RFJA_12:
+        elif self.__device_type is Platform.COVER:
+            if self.__inels_type is Element.RFJA_12:
                 self.__inels_status_value = self.__find_keys_by_value(
                     SHUTTER_STATES, self.__ha_value, self.__last_value
                 )
@@ -250,11 +237,11 @@ class DeviceValue(object):
                     else prev_val
                 )
                 self.__ha_value = ha_val
-        elif self.__device_type is CLIMATE:
-            if self.__inels_type is RFATV_2:
+        elif self.__device_type is Platform.CLIMATE:
+            if self.__inels_type is Element.RFATV_2:
                 required_temp = int(round(self.__ha_value.required * 2, 0))
                 self.__inels_set_value = f"00 {required_temp:x} 00".upper()
-        elif self.__device_type is BUTTON:
+        elif self.__device_type is Platform.BUTTON:
             self.__ha_value = ha_val
 
     def __find_keys_by_value(self, array: dict, value, last_value) -> Any:
@@ -310,7 +297,7 @@ class DeviceValue(object):
 
 def get_value(status: GetMessageType, platform: str) -> Any:
     """Get value from pyload message."""
-    if platform == SWITCH:
+    if platform == Platform.SWITCH:
         return SWITCH_STATE[status]
 
     return None

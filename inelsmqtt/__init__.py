@@ -204,7 +204,7 @@ class InelsMqtt:
 
         for item in self.__is_subscribed_list.keys():
             self.__is_subscribed_list[item] = False
-            _LOGGER.info("Disconnected %s", item)
+            _LOGGER.debug("Disconnected %s", item)
 
     def __on_connect(
         self,
@@ -427,7 +427,7 @@ class InelsMqtt:
             properties (_type_, optional): Props from broker set.
                 Defaults to None.
         """
-        _LOGGER.info(mid)
+        _LOGGER.debug(mid)
 
     def __disconnect(self) -> None:
         """Disconnecting from broker and stopping broker's loop"""

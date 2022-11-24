@@ -6,16 +6,13 @@ from unittest import TestCase
 from inelsmqtt import InelsMqtt
 from inelsmqtt.util import DeviceValue
 from inelsmqtt.devices import Device, DeviceInfo
+from inelsmqtt.const import Platform, Element
 from inelsmqtt.const import (
     BATTERY,
-    COVER,
     MANUFACTURER,
-    RFATV_2,
-    RFJA_12,
     STATE_CLOSED,
     STATE_OPEN,
     STOP_UP,
-    SWITCH,
     DEVICE_TYPE_DICT,
     FRAGMENT_DEVICE_TYPE,
     FRAGMENT_DOMAIN,
@@ -36,10 +33,6 @@ from inelsmqtt.const import (
     MQTT_PROTOCOL,
     PROTO_5,
     VERSION,
-    CLIMATE,
-    BUTTON,
-    RFGB_40,
-    RFSTI_11B,
 )
 
 from tests.const import (
@@ -121,9 +114,11 @@ class DeviceTest(TestCase):
             InelsMqtt(config), TEST_COVER_RFJA_12_TOPIC_STATE, "Shutter"
         )
         self.valve = Device(
-            InelsMqtt(config), TEST_CLIMATE_RFATV_2_TOPIC_STATE, CLIMATE
+            InelsMqtt(config), TEST_CLIMATE_RFATV_2_TOPIC_STATE, Platform.CLIMATE
         )
-        self.button = Device(InelsMqtt(config), TEST_BUTTON_RFGB_40_TOPIC_STATE, BUTTON)
+        self.button = Device(
+            InelsMqtt(config), TEST_BUTTON_RFGB_40_TOPIC_STATE, Platform.BUTTON
+        )
 
         self.switch_with_temp = Device(
             InelsMqtt(config), TEST_SWITCH_WITH_TEMP_TOPIC_STATE, "Switch"
@@ -346,8 +341,8 @@ class DeviceTest(TestCase):
         }
 
         self.assertTrue(self.shutter.is_available)
-        self.assertEqual(self.shutter.device_type, COVER)
-        self.assertEqual(self.shutter.inels_type, RFJA_12)
+        self.assertEqual(self.shutter.device_type, Platform.COVER)
+        self.assertEqual(self.shutter.inels_type, Element.RFJA_12)
         self.assertEqual(self.shutter.state, STATE_OPEN)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.publish")
@@ -409,8 +404,8 @@ class DeviceTest(TestCase):
         self.valve.get_value()
 
         self.assertTrue(self.valve.is_available)
-        self.assertEqual(self.valve.device_type, CLIMATE)
-        self.assertEqual(self.valve.inels_type, RFATV_2)
+        self.assertEqual(self.valve.device_type, Platform.CLIMATE)
+        self.assertEqual(self.valve.inels_type, Element.RFATV_2)
         self.assertEqual(self.valve.state.current, 26.0)
         self.assertEqual(self.valve.state.required, 32.0)
         self.assertEqual(self.valve.state.open_in_percentage, 40.0)
@@ -442,8 +437,8 @@ class DeviceTest(TestCase):
         self.button.get_value()
 
         self.assertTrue(self.button.is_available)
-        self.assertEqual(self.button.device_type, BUTTON)
-        self.assertEqual(self.button.inels_type, RFGB_40)
+        self.assertEqual(self.button.device_type, Platform.BUTTON)
+        self.assertEqual(self.button.inels_type, Element.RFGB_40)
         self.assertTrue(self.button.state)
 
     @patch(f"{TEST_INELS_MQTT_CLASS_NAMESPACE}.messages")
@@ -457,8 +452,8 @@ class DeviceTest(TestCase):
         self.switch_with_temp.get_value()
 
         self.assertTrue(self.switch_with_temp.is_available)
-        self.assertEqual(self.switch_with_temp.device_type, SWITCH)
-        self.assertEqual(self.switch_with_temp.inels_type, RFSTI_11B)
+        self.assertEqual(self.switch_with_temp.device_type, Platform.SWITCH)
+        self.assertEqual(self.switch_with_temp.inels_type, Element.RFSTI_11B)
         self.assertTrue(self.switch_with_temp.state.on)
         self.assertIsNotNone(self.switch_with_temp.state.temperature)
         self.assertEqual(self.switch_with_temp.state.temperature, 24.5)

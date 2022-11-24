@@ -1,49 +1,59 @@
 """Constances of inels-mqtt."""
 from __future__ import annotations
 from typing import Final
+from enum import Enum
 
 DISCOVERY_TIMEOUT_IN_SEC = 5
 
 NAME = "inels-mqtt"
 
-SWITCH = "switch"
-SENSOR = "sensor"
-LIGHT = "light"
-COVER = "cover"
-CLIMATE = "climate"
-BUTTON = "button"
+
+class Platform(Enum):
+    """Entity platforms."""
+
+    SWITCH = "switch"
+    SENSOR = "sensor"
+    LIGHT = "light"
+    COVER = "cover"
+    CLIMATE = "climate"
+    BUTTON = "button"
+
+
+class Element(Enum):
+    """Inels element names."""
+
+    RFSC_61 = "RFSC-61"
+    RFTI_10B = "RFTI-10B"
+    RFDAC_71B = "RFDAC-71B"
+    RFJA_12 = "RFJA-12"
+    RFATV_2 = "RFATV-2"
+    RFGB_40 = "RFGB-40"
+    RFKEY_40 = "RFKEY-40"
+    RFSTI_11B = "RFSTI-11B"
+    RFTC_10_G = "RFTC-10/G"
+
 
 # device types
 DEVICE_TYPE_DICT = {
-    "02": SWITCH,
-    "03": COVER,
-    "05": LIGHT,
-    "07": SWITCH,
-    "09": CLIMATE,
-    "10": SENSOR,
-    "19": BUTTON,
-    "12": SENSOR,
+    "02": Platform.SWITCH,
+    "03": Platform.COVER,
+    "05": Platform.LIGHT,
+    "07": Platform.SWITCH,
+    "09": Platform.CLIMATE,
+    "10": Platform.SENSOR,
+    "19": Platform.BUTTON,
+    "12": Platform.SENSOR,
 }
 
-RFSC_61 = "RFSC-61"
-RFTI_10B = "RFTI-10B"
-RFDAC_71B = "RFDAC-71B"
-RFJA_12 = "RFJA-12"
-RFATV_2 = "RFATV-2"
-RFGB_40 = "RFGB-40"
-RFKEY_40 = "RFKEY-40"
-RFSTI_11B = "RFSTI-11B"
-RFTC_10_G = "RFTC-10/G"
-
 INELS_DEVICE_TYPE_DICT = {
-    "02": RFSC_61,
-    "03": RFJA_12,
-    "05": RFDAC_71B,
-    "07": RFSTI_11B,
-    "09": RFATV_2,
-    "10": RFTI_10B,
-    "19": RFGB_40,
-    "12": RFTC_10_G,
+    "02": Element.RFSC_61,
+    "03": Element.RFJA_12,
+    "05": Element.RFDAC_71B,
+    "07": Element.RFSTI_11B,
+    "09": Element.RFATV_2,
+    "10": Element.RFTI_10B,
+    "19": Element.RFGB_40,
+    "12": Element.RFTC_10_G,
 }
 
 BATTERY = "battery"
@@ -104,7 +114,7 @@ SHUTTER_SET = {
 }
 
 ANALOG_REGULATOR_SET_BYTES = {
-    RFDAC_71B: "01",
+    Element.RFDAC_71B.value: "01",
     RAMP_UP: "02",
     TIME_RAMP_UP: "05",
     TIME_RAMP_DOWN: "06",
@@ -126,9 +136,9 @@ DEVICE_TYPE_05_HEX_VALUES = {
 }
 
 DEVICE_TYPE_07_DATA = {STATE: [1], TEMP_OUT: [3, 2]}
-DEVICE_TYPE_05_DATA = {RFDAC_71B: [0, 1]}
+DEVICE_TYPE_05_DATA = {Element.RFDAC_71B.value: [0, 1]}
 DEVICE_TYPE_10_DATA = {BATTERY: [0], TEMP_IN: [2, 1], TEMP_OUT: [4, 3]}
-SHUTTER_TYPE_03_DATA = {RFJA_12: [1]}
+SHUTTER_TYPE_03_DATA = {Element.RFJA_12.value: [1]}
 BUTTON_TYPE_19_DATA = {STATE: [0], IDENTITY: [1]}
 CLIMATE_TYPE_09_DATA = {
     OPEN_IN_PERCENTAGE: [0],
@@ -147,7 +157,7 @@ BUTTON_NUMBER = {
     "32": 6,
 }
 
-BUTTON_DEVICE_AMOUNT = {RFGB_40: 4}
+BUTTON_DEVICE_AMOUNT = {Element.RFGB_40.value: 4}
 
 FRAGMENT_DOMAIN = "fragment_domain"
 FRAGMENT_SERIAL_NUMBER = "fragment_serial_number"

@@ -6,7 +6,7 @@ from inelsmqtt.const import Element, BRIGHTNESS
 LIST_OF_FEATURES = {Element.RFDAC_71B.value: [BRIGHTNESS]}
 
 
-class InelsLight(Device):
+class Light(Device):
     """Carry light stuff
 
     Args:

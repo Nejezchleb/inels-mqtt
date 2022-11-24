@@ -9,7 +9,7 @@ LIST_OF_FEATURES = {
 }
 
 
-class InelsSwitch(Device):
+class Switch(Device):
     """Carry switch stuff
 
     Args:

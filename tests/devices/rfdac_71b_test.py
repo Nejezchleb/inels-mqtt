@@ -5,7 +5,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from inelsmqtt.const import Platform, Element
-from inelsmqtt.devices.light import InelsLight
+from inelsmqtt.devices.light import Light
 from inelsmqtt import InelsMqtt
 
 
@@ -48,7 +48,7 @@ class Rfdac_71b(DeviceSetup, TestCase):
         for item in self.patches:
             item.start()
 
-        self.instance = InelsLight(
+        self.instance = Light(
             InelsMqtt(self.config), TEST_TOPIC_STATE_RFDAC_71B, self.NAME
         )
         self.instance.get_value()

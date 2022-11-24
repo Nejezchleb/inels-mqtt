@@ -108,13 +108,13 @@ class DeviceTest(TestCase):
             MQTT_PROTOCOL: PROTO_5,
         }
 
-        self.switch = switch.InelsSwitch(
+        self.switch = switch.Switch(
             InelsMqtt(config), TEST_SWITCH_TOPIC_STATE, "Switch"
         )
-        self.sensor = sensor.InelsSensor(
+        self.sensor = sensor.Sensor(
             InelsMqtt(config), TEST_SENSOR_TOPIC_STATE, "Sensor"
         )
-        self.light = light.InelsLight(
+        self.light = light.Light(
             InelsMqtt(config), TEST_LIGHT_DIMMABLE_TOPIC_STATE, "Light"
         )
         self.shutter = Device(
@@ -127,11 +127,11 @@ class DeviceTest(TestCase):
             InelsMqtt(config), TEST_BUTTON_RFGB_40_TOPIC_STATE, Platform.BUTTON
         )
 
-        self.switch_with_temp = switch.InelsSwitch(
+        self.switch_with_temp = switch.Switch(
             InelsMqtt(config), TEST_SWITCH_WITH_TEMP_TOPIC_STATE, "Switch"
         )
 
-        self.rftc_10_g = sensor.InelsSensor(
+        self.rftc_10_g = sensor.Sensor(
             InelsMqtt(config), TEST_SENSOR_RFTC_10_G_TOPIC_STATE, "Sensor"
         )
 

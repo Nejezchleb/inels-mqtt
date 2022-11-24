@@ -9,7 +9,7 @@ LIST_OF_FEATURES = {
 }
 
 
-class InelsSensor(Device):
+class Sensor(Device):
     """Carry sensor stuff
 
     Args:

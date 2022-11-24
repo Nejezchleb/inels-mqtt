@@ -5,7 +5,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from inelsmqtt.const import Platform, Element, SWITCH_ON_WITH_TEMP_SET
-from inelsmqtt.devices.switch import InelsSwitch
+from inelsmqtt.devices.switch import Switch
 from inelsmqtt import InelsMqtt
 
 
@@ -47,7 +47,7 @@ class Rfsti_11b(DeviceSetup, TestCase):
         for item in self.patches:
             item.start()
 
-        self.instance = InelsSwitch(
+        self.instance = Switch(
             InelsMqtt(self.config), TEST_TOPIC_STATE_RFSTI_11B, self.NAME
         )
         self.instance.get_value()

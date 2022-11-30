@@ -92,7 +92,7 @@ class DeviceValue(object):
                 self.__inels_set_value = SWITCH_WITH_TEMP_SET[self.__ha_value.on]
             else:
                 self.__ha_value = SWITCH_STATE[self.__inels_status_value]
-                self.__inels_set_value = SWITCH_SET[self.__ha_value]
+                self.__inels_set_value = SWITCH_SET[self.__ha_value.on]
         elif self.__device_type is Platform.SENSOR:
             if self.__inels_type is Element.RFTI_10B:
                 hex_temp_in = self.__trim_inels_status_values(

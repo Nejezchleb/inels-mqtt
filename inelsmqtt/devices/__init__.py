@@ -250,7 +250,7 @@ class Device(object):
         self.update_value(new_value)
 
         for listener in self.__listeners:
-            listener(new_value)
+            self.__listeners[listener](new_value)
 
     def get_value(self) -> DeviceValue:
         """Get value from inels

@@ -193,7 +193,7 @@ class DeviceTest(TestCase):
         mock_publish.return_value = True
 
         rt_val = self.switch.get_value()
-        self.assertTrue(rt_val.ha_value)
+        self.assertTrue(rt_val.ha_value.on)
         self.assertEqual(rt_val.inels_status_value, SWITCH_ON_STATE)
         self.assertEqual(rt_val.inels_set_value, SWITCH_ON_SET)
 
@@ -205,7 +205,7 @@ class DeviceTest(TestCase):
         mock_publish.return_value = False
 
         rt_val = self.switch.get_value()
-        self.assertFalse(rt_val.ha_value)
+        self.assertFalse(rt_val.ha_value.on)
         self.assertEqual(rt_val.inels_status_value, SWITCH_OFF_STATE)
         self.assertEqual(rt_val.inels_set_value, SWITCH_OFF_SET)
 

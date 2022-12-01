@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 from unittest import TestCase
 from inelsmqtt import InelsMqtt
 from inelsmqtt.devices import light, switch, sensor
-from inelsmqtt.util import DeviceValue
+from inelsmqtt.util import DeviceValue, new_object
 from inelsmqtt.devices import Device, DeviceInfo
 from inelsmqtt.const import Platform, Element
 from inelsmqtt.const import (
